@@ -25,6 +25,11 @@ jobs:
     env:
       PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Required so zstd-sys (pulled in by tantivy) can resolve
+      # `___chkstk_darwin` on Apple targets — added to libSystem in
+      # macOS 10.15 / iOS 13.
+      MACOSX_DEPLOYMENT_TARGET: "11.0"
+      IPHONEOS_DEPLOYMENT_TARGET: "13.0"
     steps:
       - uses: actions/checkout@v4
 
