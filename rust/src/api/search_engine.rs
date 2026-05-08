@@ -1,3 +1,8 @@
+use crate::fts::expand::{expand_fuzzy, expand_wildcard};
+use crate::fts::query::{parse, QueryGroup, SubPattern};
+use crate::fts::snippet::SnippetBuilder;
+use crate::fts::tokenizer::HebrewTokenizer;
+#[cfg(not(test))]
 use crate::frb_generated::StreamSink;
 use anyhow::{Context, Result};
 use flutter_rust_bridge::frb;
@@ -6,13 +11,12 @@ use std::collections::HashMap;
 use tantivy::collector::{Collector, Count, FacetCollector, SegmentCollector, TopDocs};
 use tantivy::directory::MmapDirectory;
 use tantivy::indexer::NoMergePolicy;
-use tantivy::query::{BooleanQuery, FuzzyTermQuery, Occur, RegexQuery, TermQuery, TermSetQuery};
-use tantivy::query::{Query, RegexPhraseQuery};
+use tantivy::query::{BooleanQuery, Occur, TermQuery, TermSetQuery};
+use tantivy::query::Query;
 use tantivy::schema::Value;
-use tantivy::snippet::SnippetGenerator;
 use tantivy::{doc, DocAddress, IndexReader, IndexWriter, Order, ReloadPolicy, Score, Searcher};
 use tantivy::{schema::*, Index};
-use tantivy::{DocId, SegmentOrdinal, SegmentReader};
+use tantivy::{DocId, SegmentOrdinal, SegmentReader, Term};
 
 // ── Public data types ──────────────────────────────────────────────────────────
 
@@ -25,6 +29,8 @@ pub struct SearchResult {
     pub segment: u64,
     pub is_pdf: bool,
     pub file_path: String,
+    pub score: u32,
+    pub word_distance: u32,
 }
 
 pub struct DocumentInput {
@@ -76,7 +82,15 @@ impl SearchEngine {
     pub fn new(path: &str) -> Self {
         debug!("new path={}", path);
         let mut schema_builder = Schema::builder();
-        schema_builder.add_text_field("text", TEXT | STORED | FAST);
+        let text_options = TextOptions::default()
+            .set_indexing_options(
+                TextFieldIndexing::default()
+                    .set_tokenizer("hebrew")
+                    .set_index_option(IndexRecordOption::WithFreqsAndPositions),
+            )
+            .set_stored()
+            .set_fast(None);
+        schema_builder.add_text_field("text", text_options);
         schema_builder.add_text_field("reference", STORED);
         schema_builder.add_text_field(
             "title",
@@ -88,7 +102,6 @@ impl SearchEngine {
                 )
                 .set_stored(),
         );
-        // INDEXED is required for delete_term / upsert by id to work.
         schema_builder.add_u64_field("id", STORED | FAST | INDEXED);
         schema_builder.add_u64_field("segment", STORED);
         schema_builder.add_bool_field("isPdf", STORED);
@@ -99,6 +112,7 @@ impl SearchEngine {
         let mmap_directory = MmapDirectory::open(path).expect("unable to open mmap directory");
         let index =
             Index::open_or_create(mmap_directory, schema.clone()).expect("Failed to create index");
+        index.tokenizers().register("hebrew", HebrewTokenizer);
         let index_reader = index
             .reader_builder()
             .reload_policy(ReloadPolicy::OnCommitWithDelay)
@@ -119,7 +133,6 @@ impl SearchEngine {
 
     // ── Write API ──────────────────────────────────────────────────────────────
 
-    /// Add a single document. Does not commit.
     pub fn add_document(
         &mut self,
         _id: u64,
@@ -147,8 +160,6 @@ impl SearchEngine {
         Ok(())
     }
 
-    /// Add many documents in a single FFI call. Does not commit.
-    /// For initial bulk loads – no duplicate checking.
     pub fn add_documents_batch(&mut self, docs: Vec<DocumentInput>) -> Result<()> {
         let (title_f, reference_f, text_f, id_f, segment_f, is_pdf_f, file_path_f, topics_f) =
             self.all_fields()?;
@@ -169,7 +180,6 @@ impl SearchEngine {
         Ok(())
     }
 
-    /// Delete then re-insert a single document by id. Does not commit.
     pub fn upsert_document(
         &mut self,
         _id: u64,
@@ -187,7 +197,6 @@ impl SearchEngine {
         )
     }
 
-    /// Upsert many documents in a single FFI call. Does not commit.
     pub fn upsert_documents_batch(&mut self, docs: Vec<DocumentInput>) -> Result<()> {
         let (title_f, reference_f, text_f, id_f, segment_f, is_pdf_f, file_path_f, topics_f) =
             self.all_fields()?;
@@ -209,7 +218,6 @@ impl SearchEngine {
         Ok(())
     }
 
-    /// Delete a document by its numeric id. Does not commit.
     pub fn delete_document_by_id(&mut self, id: u64) -> Result<()> {
         let id_f = self.schema.get_field("id").unwrap();
         self.writer_mut()?
@@ -217,8 +225,6 @@ impl SearchEngine {
         Ok(())
     }
 
-    /// Delete all documents matching a title. Does not commit.
-    /// Kept for backward compatibility – prefer delete_document_by_id.
     pub fn remove_documents_by_title(&mut self, title: &str) -> Result<()> {
         let title_field = self.schema.get_field("title")?;
         self.writer_mut()?
@@ -226,20 +232,17 @@ impl SearchEngine {
         Ok(())
     }
 
-    /// Delete all documents. Does not commit.
     pub fn clear(&mut self) -> Result<()> {
         self.writer_mut()?.delete_all_documents()?;
         Ok(())
     }
 
-    /// Flush pending writes to disk and refresh the reader.
     pub fn commit(&mut self) -> Result<()> {
         self.writer_mut()?.commit()?;
         self.index_reader.reload()?;
         Ok(())
     }
 
-    /// Discard all pending writes since the last commit.
     pub fn rollback(&mut self) -> Result<()> {
         self.writer_mut()?.rollback()?;
         Ok(())
@@ -249,46 +252,49 @@ impl SearchEngine {
 
     pub fn search(
         &mut self,
-        regex_terms: Vec<String>,
+        query: String,
         facets: Vec<String>,
         limit: u32,
         offset: u32,
-        slop: u32,
-        max_expansions: u32,
         order: ResultsOrder,
         highlight: Option<HighlightConfig>,
     ) -> Result<Vec<SearchResult>> {
-        let query = Self::build_query(&self.index, regex_terms, facets, slop, max_expansions)?;
         let searcher = self.index_reader.searcher();
         let hl = highlight.unwrap_or_else(HighlightConfig::default);
-        let addresses = Self::collect_addresses(&searcher, &*query, limit, offset, &order)?;
-        Self::build_results(&self.schema, &searcher, &*query, addresses, &hl)
+        let (tantivy_query, expanded_groups) =
+            self.build_fts_query(&searcher, &query, &facets)?;
+        if tantivy_query.is_none() {
+            return Ok(vec![]);
+        }
+        let tantivy_query = tantivy_query.unwrap();
+        let addresses = Self::collect_addresses(&searcher, &*tantivy_query, limit, offset, &order)?;
+        Self::build_results(&self.schema, &searcher, addresses, &expanded_groups, &hl)
     }
 
-    /// Search and return total hit count alongside paged results in one call.
-    /// Uses a tuple collector so Tantivy executes a single index pass.
     pub fn search_and_count(
         &mut self,
-        regex_terms: Vec<String>,
+        query: String,
         facets: Vec<String>,
         limit: u32,
         offset: u32,
-        slop: u32,
-        max_expansions: u32,
         order: ResultsOrder,
         highlight: Option<HighlightConfig>,
     ) -> Result<SearchPageResult> {
-        let query = Self::build_query(&self.index, regex_terms, facets, slop, max_expansions)?;
         let searcher = self.index_reader.searcher();
         let hl = highlight.unwrap_or_else(HighlightConfig::default);
+        let (tantivy_query, expanded_groups) =
+            self.build_fts_query(&searcher, &query, &facets)?;
+        if tantivy_query.is_none() {
+            return Ok(SearchPageResult { total_count: 0, results: vec![] });
+        }
+        let tantivy_query = tantivy_query.unwrap();
 
-        // Tuple collector: single index pass for both count and top-docs.
         let (addresses, total_count): (Vec<DocAddress>, u32) = match order {
             ResultsOrder::Catalogue => {
                 let top_collector = TopDocs::with_limit(limit as usize)
                     .and_offset(offset as usize)
                     .order_by_fast_field::<u64>("id", Order::Asc);
-                let (top_docs, count) = searcher.search(&*query, &(top_collector, Count))?;
+                let (top_docs, count) = searcher.search(&*tantivy_query, &(top_collector, Count))?;
                 let addrs = top_docs.into_iter().map(|(_, addr)| addr).collect();
                 (addrs, count as u32)
             }
@@ -296,64 +302,59 @@ impl SearchEngine {
                 let top_collector = TopDocs::with_limit(limit as usize)
                     .and_offset(offset as usize)
                     .order_by_score();
-                let (top_docs, count) = searcher.search(&*query, &(top_collector, Count))?;
+                let (top_docs, count) = searcher.search(&*tantivy_query, &(top_collector, Count))?;
                 let addrs = top_docs.into_iter().map(|(_, addr)| addr).collect();
                 (addrs, count as u32)
             }
         };
 
-        let results = Self::build_results(&self.schema, &searcher, &*query, addresses, &hl)?;
-        Ok(SearchPageResult {
-            total_count,
-            results,
-        })
+        let results = Self::build_results(&self.schema, &searcher, addresses, &expanded_groups, &hl)?;
+        Ok(SearchPageResult { total_count, results })
     }
 
     pub fn count(
         &mut self,
-        regex_terms: Vec<String>,
-        facets: &Vec<String>,
-        slop: u32,
-        max_expansions: u32,
+        query: String,
+        facets: Vec<String>,
     ) -> Result<u32> {
-        let query = Self::build_query(
-            &self.index,
-            regex_terms,
-            facets.clone(),
-            slop,
-            max_expansions,
-        )?;
         let searcher = self.index_reader.searcher();
-        Ok(searcher.search(&*query, &Count)? as u32)
+        let (tantivy_query, _) = self.build_fts_query(&searcher, &query, &facets)?;
+        if tantivy_query.is_none() {
+            return Ok(0);
+        }
+        let tantivy_query = tantivy_query.unwrap();
+        Ok(searcher.search(&*tantivy_query, &Count)? as u32)
     }
 
     pub fn count_by_book(
         &mut self,
-        regex_terms: Vec<String>,
+        query: String,
         facets: Vec<String>,
-        slop: u32,
-        max_expansions: u32,
     ) -> Result<HashMap<String, u32>> {
-        let query = Self::build_query(&self.index, regex_terms, facets, slop, max_expansions)?;
         let searcher = self.index_reader.searcher();
-        Ok(searcher.search(&*query, &BookCountCollector)?)
+        let (tantivy_query, _) = self.build_fts_query(&searcher, &query, &facets)?;
+        if tantivy_query.is_none() {
+            return Ok(HashMap::new());
+        }
+        let tantivy_query = tantivy_query.unwrap();
+        Ok(searcher.search(&*tantivy_query, &BookCountCollector)?)
     }
 
-    /// Return per-child facet counts for a given prefix (e.g. "/").
     pub fn get_facet_counts(
         &mut self,
-        regex_terms: Vec<String>,
+        query: String,
         facets: Vec<String>,
         facet_prefix: String,
-        slop: u32,
-        max_expansions: u32,
     ) -> Result<Vec<FacetCount>> {
-        let query = Self::build_query(&self.index, regex_terms, facets, slop, max_expansions)?;
         let searcher = self.index_reader.searcher();
+        let (tantivy_query, _) = self.build_fts_query(&searcher, &query, &facets)?;
+        if tantivy_query.is_none() {
+            return Ok(vec![]);
+        }
+        let tantivy_query = tantivy_query.unwrap();
         let mut facet_collector = FacetCollector::for_field("topics");
         facet_collector.add_facet(&facet_prefix);
-        let facet_counts = searcher.search(&*query, &facet_collector)?;
-        // FacetCounts::get<T> requires Facet: From<T>; &str satisfies this.
+        let facet_counts = searcher.search(&*tantivy_query, &facet_collector)?;
         let results = facet_counts
             .get(facet_prefix.as_str())
             .map(|(f, count)| FacetCount {
@@ -364,12 +365,42 @@ impl SearchEngine {
         Ok(results)
     }
 
+    #[cfg(not(test))]
+    pub fn search_stream(
+        &self,
+        query: String,
+        facets: Vec<String>,
+        limit: u32,
+        offset: u32,
+        order: ResultsOrder,
+        highlight: Option<HighlightConfig>,
+        chunk_size: u32,
+        sink: StreamSink<Vec<SearchResult>>,
+    ) -> Result<()> {
+        let searcher = self.index_reader.searcher();
+        let hl = highlight.unwrap_or_else(HighlightConfig::default);
+        let (tantivy_query, expanded_groups) =
+            self.build_fts_query_stateless(&searcher, &query, &facets)?;
+        if tantivy_query.is_none() {
+            return Ok(());
+        }
+        let tantivy_query = tantivy_query.unwrap();
+        let chunk_size = (chunk_size.max(1)) as usize;
+
+        let addresses = Self::collect_addresses(&searcher, &*tantivy_query, limit, offset, &order)?;
+
+        for chunk in addresses.chunks(chunk_size) {
+            let results =
+                Self::build_results(&self.schema, &searcher, chunk.to_vec(), &expanded_groups, &hl)?;
+            if sink.add(results).is_err() {
+                break;
+            }
+        }
+        Ok(())
+    }
+
     // ── Operational API ────────────────────────────────────────────────────────
 
-    /// Merge all segments into one. Run occasionally in the background after
-    /// many upserts/deletes to reclaim disk space and improve read performance.
-    /// Run only after `commit()`, because only committed segments participate in
-    /// manual merge maintenance.
     pub fn optimize(&mut self) -> Result<()> {
         let before_count = self.index.searchable_segment_ids()?.len();
         debug!("optimize: before={before_count}");
@@ -409,8 +440,6 @@ impl SearchEngine {
         Ok(self.index.searchable_segment_ids()?.len() as u32)
     }
 
-    /// Fetch a single document by its numeric id. Returns None if not found.
-    /// The `text` field contains the raw stored text (no snippet/highlight).
     pub fn get_document_by_id(&self, id: u64) -> Result<Option<SearchResult>> {
         let id_f = self.schema.get_field("id")?;
         let term = Term::from_field_u64(id_f, id);
@@ -431,117 +460,16 @@ impl SearchEngine {
         let file_path_f = self.schema.get_field("filePath")?;
 
         Ok(Some(SearchResult {
-            title: doc
-                .get_first(title_f)
-                .and_then(|v| v.as_str())
-                .unwrap_or_default()
-                .to_string(),
-            reference: doc
-                .get_first(reference_f)
-                .and_then(|v| v.as_str())
-                .unwrap_or_default()
-                .to_string(),
-            text: doc
-                .get_first(text_f)
-                .and_then(|v| v.as_str())
-                .unwrap_or_default()
-                .to_string(),
+            title: doc.get_first(title_f).and_then(|v| v.as_str()).unwrap_or_default().to_string(),
+            reference: doc.get_first(reference_f).and_then(|v| v.as_str()).unwrap_or_default().to_string(),
+            text: doc.get_first(text_f).and_then(|v| v.as_str()).unwrap_or_default().to_string(),
             id,
-            segment: doc
-                .get_first(segment_f)
-                .and_then(|v| v.as_u64())
-                .unwrap_or_default(),
-            is_pdf: doc
-                .get_first(is_pdf_f)
-                .and_then(|v| v.as_bool())
-                .unwrap_or_default(),
-            file_path: doc
-                .get_first(file_path_f)
-                .and_then(|v| v.as_str())
-                .unwrap_or_default()
-                .to_string(),
+            segment: doc.get_first(segment_f).and_then(|v| v.as_u64()).unwrap_or_default(),
+            is_pdf: doc.get_first(is_pdf_f).and_then(|v| v.as_bool()).unwrap_or_default(),
+            file_path: doc.get_first(file_path_f).and_then(|v| v.as_str()).unwrap_or_default().to_string(),
+            score: 0,
+            word_distance: 0,
         }))
-    }
-
-    /// Fuzzy (Levenshtein) search on plain text terms.
-    /// Unlike `search()` which requires regex patterns, this accepts plain words
-    /// and matches terms within `max_distance` edits (0 = exact, 1–2 = fuzzy).
-    /// Multiple terms are ANDed together; each term is matched fuzzily.
-    pub fn search_fuzzy(
-        &mut self,
-        terms: Vec<String>,
-        facets: Vec<String>,
-        limit: u32,
-        offset: u32,
-        max_distance: u8,
-        order: ResultsOrder,
-        highlight: Option<HighlightConfig>,
-    ) -> Result<Vec<SearchResult>> {
-        let searcher = self.index_reader.searcher();
-        let text_f = self.schema.get_field("text")?;
-        let topics_f = self.schema.get_field("topics")?;
-        let hl = highlight.unwrap_or_else(HighlightConfig::default);
-
-        // Build a fuzzy sub-query per term, ANDed together.
-        let mut clauses: Vec<(Occur, Box<dyn Query>)> = terms
-            .iter()
-            .map(|t| {
-                let term = Term::from_field_text(text_f, t);
-                let fq: Box<dyn Query> = Box::new(FuzzyTermQuery::new(term, max_distance, true));
-                (Occur::Must, fq)
-            })
-            .collect();
-
-        // Add facet filter (same as regular search).
-        let facet_terms: Vec<Term> = facets
-            .iter()
-            .map(|f| Term::from_facet(topics_f, &Facet::from_text(f).unwrap()))
-            .collect();
-        clauses.push((Occur::Must, Box::new(TermSetQuery::new(facet_terms))));
-
-        let query: Box<dyn Query> = Box::new(BooleanQuery::new(clauses));
-        let addresses = Self::collect_addresses(&searcher, &*query, limit, offset, &order)?;
-        Self::build_results(&self.schema, &searcher, &*query, addresses, &hl)
-    }
-
-    /// Stream search results in chunks of `chunk_size` documents.
-    ///
-    /// The TopDocs phase (scoring and ranking) completes upfront – this is
-    /// inherent to how Tantivy's collectors work and cannot be avoided without
-    /// a custom collector. What IS incremental is the stored-document retrieval
-    /// and snippet generation: the Dart side receives the first chunk of results
-    /// as soon as those are ready, without waiting for all snippets to be built.
-    /// This is useful when `limit` is large and snippet generation is the
-    /// bottleneck. For typical limits (≤ 200) the difference is negligible.
-    pub fn search_stream(
-        &self,
-        regex_terms: Vec<String>,
-        facets: Vec<String>,
-        limit: u32,
-        offset: u32,
-        slop: u32,
-        max_expansions: u32,
-        order: ResultsOrder,
-        highlight: Option<HighlightConfig>,
-        chunk_size: u32,
-        sink: StreamSink<Vec<SearchResult>>,
-    ) -> Result<()> {
-        let query = Self::build_query(&self.index, regex_terms, facets, slop, max_expansions)?;
-        let searcher = self.index_reader.searcher();
-        let hl = highlight.unwrap_or_else(HighlightConfig::default);
-        let chunk_size = (chunk_size.max(1)) as usize;
-
-        let addresses = Self::collect_addresses(&searcher, &*query, limit, offset, &order)?;
-
-        for chunk in addresses.chunks(chunk_size) {
-            let results =
-                Self::build_results(&self.schema, &searcher, &*query, chunk.to_vec(), &hl)?;
-            // If the Dart side cancelled the stream, stop early.
-            if sink.add(results).is_err() {
-                break;
-            }
-        }
-        Ok(())
     }
 
     // ── Private helpers ────────────────────────────────────────────────────────
@@ -613,36 +541,69 @@ impl SearchEngine {
         Ok(())
     }
 
-    fn build_query(
-        index: &Index,
-        regex_terms: Vec<String>,
-        facets: Vec<String>,
-        slop: u32,
-        max_expansions: u32,
-    ) -> Result<Box<dyn Query>> {
-        let schema = index.schema();
-        let text_field = schema.get_field("text").unwrap();
-        let topics_field = schema.get_field("topics").unwrap();
+    /// Parse the query string, expand terms, and build a Tantivy BooleanQuery.
+    /// Returns (None, _) when the query is empty or a fuzzy term has no candidates (hard miss).
+    /// `expanded_groups[i]` = concrete terms for AND-slot i (for snippet highlighting).
+    fn build_fts_query(
+        &self,
+        searcher: &Searcher,
+        query: &str,
+        facets: &[String],
+    ) -> Result<(Option<Box<dyn Query>>, Vec<Vec<String>>)> {
+        self.build_fts_query_stateless(searcher, query, facets)
+    }
 
-        let main_query: Box<dyn Query> = if regex_terms.len() == 1 {
-            Box::new(RegexQuery::from_pattern(&regex_terms[0], text_field)?)
-        } else {
-            let mut phrase_query = RegexPhraseQuery::new(text_field, regex_terms);
-            phrase_query.set_slop(slop);
-            phrase_query.set_max_expansions(max_expansions);
-            Box::new(phrase_query)
-        };
+    fn build_fts_query_stateless(
+        &self,
+        searcher: &Searcher,
+        query: &str,
+        facets: &[String],
+    ) -> Result<(Option<Box<dyn Query>>, Vec<Vec<String>>)> {
+        let parsed = parse(query);
+        if parsed.is_empty() {
+            return Ok((None, vec![]));
+        }
 
+        let text_field = self.schema.get_field("text")?;
+        let topics_field = self.schema.get_field("topics")?;
+
+        let mut clauses: Vec<(Occur, Box<dyn Query>)> = Vec::new();
+        let mut expanded_groups: Vec<Vec<String>> = Vec::new();
+
+        for group in &parsed.groups {
+            let group_terms = expand_group(group, text_field, searcher);
+            if group_terms.is_none() {
+                // Hard miss: fuzzy alternative returned no candidates
+                return Ok((None, vec![]));
+            }
+            let group_terms = group_terms.unwrap();
+            if group_terms.is_empty() {
+                // Wildcard with no matches — skip this group
+                continue;
+            }
+
+            let term_set: Vec<Term> = group_terms
+                .iter()
+                .map(|t| Term::from_field_text(text_field, t))
+                .collect();
+
+            clauses.push((Occur::Must, Box::new(TermSetQuery::new(term_set))));
+            expanded_groups.push(group_terms);
+        }
+
+        if clauses.is_empty() {
+            return Ok((None, vec![]));
+        }
+
+        // Facet filter
         let facet_terms: Vec<Term> = facets
             .iter()
             .map(|f| Term::from_facet(topics_field, &Facet::from_text(f).unwrap()))
             .collect();
-        let facets_query = TermSetQuery::new(facet_terms);
+        clauses.push((Occur::Must, Box::new(TermSetQuery::new(facet_terms))));
 
-        Ok(Box::new(BooleanQuery::new(vec![
-            (Occur::Must, main_query),
-            (Occur::Must, Box::new(facets_query) as Box<dyn Query>),
-        ])))
+        let query: Box<dyn Query> = Box::new(BooleanQuery::new(clauses));
+        Ok((Some(query), expanded_groups))
     }
 
     fn collect_addresses(
@@ -654,8 +615,6 @@ impl SearchEngine {
     ) -> Result<Vec<DocAddress>> {
         let addresses = match order {
             ResultsOrder::Catalogue => {
-                // and_offset is set on TopDocs before calling order_by_fast_field,
-                // which consumes self and preserves the offset configuration.
                 let collector = TopDocs::with_limit(limit as usize)
                     .and_offset(offset as usize)
                     .order_by_fast_field::<u64>("id", Order::Asc);
@@ -682,8 +641,8 @@ impl SearchEngine {
     fn build_results(
         schema: &Schema,
         searcher: &Searcher,
-        query: &dyn Query,
         addresses: Vec<DocAddress>,
+        expanded_groups: &[Vec<String>],
         hl: &HighlightConfig,
     ) -> Result<Vec<SearchResult>> {
         let title_field = schema.get_field("title")?;
@@ -694,8 +653,12 @@ impl SearchEngine {
         let is_pdf_field = schema.get_field("isPdf")?;
         let file_path_field = schema.get_field("filePath")?;
 
-        let mut snippet_generator = SnippetGenerator::create(searcher, query, text_field)?;
-        snippet_generator.set_max_num_chars(hl.max_chars as usize);
+        let snippet_builder = SnippetBuilder::new(
+            &hl.highlight_prefix,
+            &hl.highlight_postfix,
+            hl.max_chars as usize,
+            150,
+        );
 
         let mut results = Vec::with_capacity(addresses.len());
         for doc_address in addresses {
@@ -704,46 +667,19 @@ impl SearchEngine {
                 Err(_) => continue,
             };
 
-            let title = retrieved_doc
-                .get_first(title_field)
-                .and_then(|v| v.as_str())
-                .unwrap_or_default()
-                .to_string();
-            let reference = retrieved_doc
-                .get_first(reference_field)
-                .and_then(|v| v.as_str())
-                .unwrap_or_default()
-                .to_string();
-            let text = retrieved_doc
-                .get_first(text_field)
-                .and_then(|v| v.as_str())
-                .unwrap_or_default()
-                .to_string();
-            let id = retrieved_doc
-                .get_first(id_field)
-                .and_then(|v| v.as_u64())
-                .unwrap_or_default();
-            let segment = retrieved_doc
-                .get_first(segment_field)
-                .and_then(|v| v.as_u64())
-                .unwrap_or_default();
-            let is_pdf = retrieved_doc
-                .get_first(is_pdf_field)
-                .and_then(|v| v.as_bool())
-                .unwrap_or_default();
-            let file_path = retrieved_doc
-                .get_first(file_path_field)
-                .and_then(|v| v.as_str())
-                .unwrap_or_default()
-                .to_string();
+            let title = retrieved_doc.get_first(title_field).and_then(|v| v.as_str()).unwrap_or_default().to_string();
+            let reference = retrieved_doc.get_first(reference_field).and_then(|v| v.as_str()).unwrap_or_default().to_string();
+            let text = retrieved_doc.get_first(text_field).and_then(|v| v.as_str()).unwrap_or_default().to_string();
+            let id = retrieved_doc.get_first(id_field).and_then(|v| v.as_u64()).unwrap_or_default();
+            let segment = retrieved_doc.get_first(segment_field).and_then(|v| v.as_u64()).unwrap_or_default();
+            let is_pdf = retrieved_doc.get_first(is_pdf_field).and_then(|v| v.as_bool()).unwrap_or_default();
+            let file_path = retrieved_doc.get_first(file_path_field).and_then(|v| v.as_str()).unwrap_or_default().to_string();
 
-            let mut snippet = snippet_generator.snippet(&text);
-            snippet.set_snippet_prefix_postfix(&hl.highlight_prefix, &hl.highlight_postfix);
-            let snippet_html = snippet.to_html();
-            let result_text = if snippet_html.is_empty() {
-                text
+            let snippet = snippet_builder.build(&text, expanded_groups);
+            let result_text = if snippet.is_match && !snippet.html.is_empty() {
+                snippet.html
             } else {
-                snippet_html
+                text
             };
 
             results.push(SearchResult {
@@ -754,6 +690,8 @@ impl SearchEngine {
                 segment,
                 is_pdf,
                 file_path,
+                score: if snippet.score == u32::MAX { 0 } else { snippet.score },
+                word_distance: if snippet.word_distance == u32::MAX { 0 } else { snippet.word_distance },
             });
         }
         Ok(results)
@@ -770,10 +708,59 @@ impl HighlightConfig {
     }
 }
 
+// ── Query group expansion ──────────────────────────────────────────────────────
+
+/// Expand all OR alternatives in a group into a flat deduplicated list of concrete terms.
+/// Returns None on a hard miss (fuzzy alternative produced no candidates).
+/// Returns Some(empty) when wildcards produced nothing (caller should skip the group).
+fn expand_group(group: &QueryGroup, field: Field, searcher: &Searcher) -> Option<Vec<String>> {
+    // Fast path: single literal
+    if group.is_single() {
+        let alt = &group.alternatives[0];
+        if !alt.is_wildcard && !alt.is_fuzzy {
+            return Some(vec![alt.pattern.clone()]);
+        }
+    }
+
+    let mut seen = std::collections::HashSet::new();
+    let mut result: Vec<String> = Vec::new();
+
+    for alt in &group.alternatives {
+        let expanded = expand_alternative(alt, field, searcher)?;
+        for term in expanded {
+            if seen.insert(term.clone()) {
+                result.push(term);
+            }
+        }
+    }
+
+    Some(result)
+}
+
+/// Expand a single SubPattern into concrete terms.
+/// Returns None only on a fuzzy hard miss.
+fn expand_alternative(alt: &SubPattern, field: Field, searcher: &Searcher) -> Option<Vec<String>> {
+    if alt.is_fuzzy {
+        let terms = expand_fuzzy(&alt.pattern, alt.fuzzy_distance, field, searcher);
+        if terms.is_empty() {
+            // Hard miss: fuzzy term with no candidates in index
+            return None;
+        }
+        return Some(terms);
+    }
+
+    if alt.is_wildcard {
+        let terms = expand_wildcard(&alt.pattern, field, searcher);
+        // Wildcard with no matches: return empty (caller skips group, not hard miss)
+        return Some(terms);
+    }
+
+    // Literal
+    Some(vec![alt.pattern.clone()])
+}
+
 // ── BookCountCollector ─────────────────────────────────────────────────────────
 
-/// Counts matching documents grouped by `filePath` fast field.
-/// Per-segment counts use term ordinals; strings are decoded only in harvest().
 struct BookCountCollector;
 
 struct BookCountSegmentCollector {
@@ -869,15 +856,13 @@ mod tests {
             .set_merge_policy(Box::new(NoMergePolicy));
     }
 
-    fn search_ids(engine: &mut SearchEngine, term: &str) -> Vec<u64> {
+    fn search_ids(engine: &mut SearchEngine, query: &str) -> Vec<u64> {
         engine
             .search(
-                vec![term.to_string()],
+                query.to_string(),
                 vec!["/root".to_string()],
                 100,
                 0,
-                0,
-                100,
                 ResultsOrder::Catalogue,
                 None,
             )
@@ -885,6 +870,76 @@ mod tests {
             .into_iter()
             .map(|result| result.id)
             .collect()
+    }
+
+    #[test]
+    fn test_literal_search() {
+        let (mut engine, _dir) = make_engine();
+        add(&mut engine, 1, "שלום עולם", "/books/a.txt");
+        add(&mut engine, 2, "שלום רב", "/books/a.txt");
+        add(&mut engine, 3, "ביי", "/books/b.txt");
+        engine.commit().unwrap();
+
+        let ids = search_ids(&mut engine, "שלום");
+        assert_eq!(ids.len(), 2);
+        assert!(ids.contains(&1));
+        assert!(ids.contains(&2));
+    }
+
+    #[test]
+    fn test_and_search() {
+        let (mut engine, _dir) = make_engine();
+        add(&mut engine, 1, "שלום עולם", "/books/a.txt");
+        add(&mut engine, 2, "שלום רב", "/books/a.txt");
+        engine.commit().unwrap();
+
+        let ids = search_ids(&mut engine, "שלום עולם");
+        assert_eq!(ids, vec![1]);
+    }
+
+    #[test]
+    fn test_or_search() {
+        let (mut engine, _dir) = make_engine();
+        add(&mut engine, 1, "שלום עולם", "/books/a.txt");
+        add(&mut engine, 2, "ביי חבר", "/books/b.txt");
+        add(&mut engine, 3, "אחר", "/books/c.txt");
+        engine.commit().unwrap();
+
+        let ids = search_ids(&mut engine, "שלום | ביי");
+        assert!(ids.contains(&1));
+        assert!(ids.contains(&2));
+        assert!(!ids.contains(&3));
+    }
+
+    #[test]
+    fn test_prefix_wildcard() {
+        let (mut engine, _dir) = make_engine();
+        add(&mut engine, 1, "שלום", "/books/a.txt");
+        add(&mut engine, 2, "שלומי", "/books/b.txt");
+        add(&mut engine, 3, "ביי", "/books/c.txt");
+        engine.commit().unwrap();
+
+        let ids = search_ids(&mut engine, "שלו*");
+        assert!(ids.contains(&1), "שלום should match שלו*");
+        assert!(ids.contains(&2), "שלומי should match שלו*");
+        assert!(!ids.contains(&3), "ביי should not match שלו*");
+    }
+
+    #[test]
+    fn test_fuzzy_search() {
+        let (mut engine, _dir) = make_engine();
+        add(&mut engine, 1, "שלום", "/books/a.txt");
+        // "שלוף" shares trigram "שלו" with "שלום" — passes n-gram filter
+        // and is 1 edit away (substitute ם→ף).
+        add(&mut engine, 2, "שלוף", "/books/b.txt");
+        add(&mut engine, 3, "ביי", "/books/c.txt");
+        engine.commit().unwrap();
+
+        // שלום~ should match שלום (exact) and שלוף (1 edit away)
+        let ids = search_ids(&mut engine, "שלום~");
+        assert!(ids.contains(&1), "exact match expected");
+        assert!(ids.contains(&2), "one-edit match expected");
+        assert!(!ids.contains(&3), "unrelated should not match");
     }
 
     #[test]
@@ -896,59 +951,11 @@ mod tests {
         engine.commit().unwrap();
 
         let counts = engine
-            .count_by_book(vec!["שלום".to_string()], vec!["/root".to_string()], 0, 100)
+            .count_by_book("שלום".to_string(), vec!["/root".to_string()])
             .unwrap();
 
         assert_eq!(counts.get("/books/a.txt").copied(), Some(2));
         assert_eq!(counts.get("/books/b.txt").copied(), Some(1));
-        assert_eq!(counts.len(), 2);
-    }
-
-    #[test]
-    fn test_count_by_book_empty_result() {
-        let (mut engine, _dir) = make_engine();
-        add(&mut engine, 1, "שלום עולם", "/books/a.txt");
-        engine.commit().unwrap();
-
-        let counts = engine
-            .count_by_book(vec!["ביי".to_string()], vec!["/root".to_string()], 0, 100)
-            .unwrap();
-
-        assert!(counts.is_empty());
-    }
-
-    #[test]
-    fn test_count_by_book_no_cross_contamination() {
-        let (mut engine, _dir) = make_engine();
-        add(&mut engine, 1, "שלום עולם", "/books/a.txt");
-        add(&mut engine, 2, "שלום ביי", "/books/b.txt");
-        engine.commit().unwrap();
-
-        let counts = engine
-            .count_by_book(vec!["עולם".to_string()], vec!["/root".to_string()], 0, 100)
-            .unwrap();
-
-        assert_eq!(counts.get("/books/a.txt").copied(), Some(1));
-        assert_eq!(counts.get("/books/b.txt"), None);
-    }
-
-    #[test]
-    fn test_count_by_book_multi_segment() {
-        let (mut engine, _dir) = make_engine();
-        add(&mut engine, 1, "שלום עולם", "/books/a.txt");
-        engine.commit().unwrap();
-
-        add(&mut engine, 2, "שלום רב", "/books/a.txt");
-        add(&mut engine, 3, "שלום חבר", "/books/b.txt");
-        engine.commit().unwrap();
-
-        let counts = engine
-            .count_by_book(vec!["שלום".to_string()], vec!["/root".to_string()], 0, 100)
-            .unwrap();
-
-        assert_eq!(counts.get("/books/a.txt").copied(), Some(2));
-        assert_eq!(counts.get("/books/b.txt").copied(), Some(1));
-        assert_eq!(counts.len(), 2);
     }
 
     #[test]
@@ -958,22 +965,12 @@ mod tests {
         add(&mut engine, 2, "שלום רב", "/books/a.txt");
         engine.commit().unwrap();
 
-        assert_eq!(
-            engine
-                .count(vec!["שלום".to_string()], &vec!["/root".to_string()], 0, 100)
-                .unwrap(),
-            2
-        );
+        assert_eq!(engine.count("שלום".to_string(), vec!["/root".to_string()]).unwrap(), 2);
 
         engine.delete_document_by_id(1).unwrap();
         engine.commit().unwrap();
 
-        assert_eq!(
-            engine
-                .count(vec!["שלום".to_string()], &vec!["/root".to_string()], 0, 100)
-                .unwrap(),
-            1
-        );
+        assert_eq!(engine.count("שלום".to_string(), vec!["/root".to_string()]).unwrap(), 1);
     }
 
     #[test]
@@ -983,38 +980,13 @@ mod tests {
         engine.commit().unwrap();
 
         engine
-            .upsert_document(
-                1,
-                "title",
-                "ref",
-                "/root",
-                "טקסט חדש",
-                0,
-                false,
-                "/books/a.txt",
-            )
+            .upsert_document(1, "title", "ref", "/root", "טקסט חדש", 0, false, "/books/a.txt")
             .unwrap();
         engine.commit().unwrap();
 
-        // Should have only one doc with id=1
-        assert_eq!(
-            engine
-                .count(vec!["טקסט".to_string()], &vec!["/root".to_string()], 0, 100)
-                .unwrap(),
-            1
-        );
-        assert_eq!(
-            engine
-                .count(vec!["ישן".to_string()], &vec!["/root".to_string()], 0, 100)
-                .unwrap(),
-            0
-        );
-        assert_eq!(
-            engine
-                .count(vec!["חדש".to_string()], &vec!["/root".to_string()], 0, 100)
-                .unwrap(),
-            1
-        );
+        assert_eq!(engine.count("טקסט".to_string(), vec!["/root".to_string()]).unwrap(), 1);
+        assert_eq!(engine.count("ישן".to_string(), vec!["/root".to_string()]).unwrap(), 0);
+        assert_eq!(engine.count("חדש".to_string(), vec!["/root".to_string()]).unwrap(), 1);
     }
 
     #[test]
@@ -1027,13 +999,7 @@ mod tests {
         engine.rollback().unwrap();
         engine.commit().unwrap();
 
-        // doc 2 should not be present
-        assert_eq!(
-            engine
-                .count(vec!["שלום".to_string()], &vec!["/root".to_string()], 0, 100)
-                .unwrap(),
-            1
-        );
+        assert_eq!(engine.count("שלום".to_string(), vec!["/root".to_string()]).unwrap(), 1);
     }
 
     #[test]
@@ -1069,64 +1035,6 @@ mod tests {
     }
 
     #[test]
-    fn test_search_fuzzy() {
-        let (mut engine, _dir) = make_engine();
-        // "שלום" exact match; "שלם" is one edit away (deletion); "ביי" is unrelated
-        add(&mut engine, 1, "שלום", "/books/a.txt");
-        add(&mut engine, 2, "שלם", "/books/b.txt");
-        add(&mut engine, 3, "ביי", "/books/c.txt");
-        engine.commit().unwrap();
-
-        // distance=0: only exact match
-        let exact = engine
-            .search_fuzzy(
-                vec!["שלום".to_string()],
-                vec!["/root".to_string()],
-                10,
-                0,
-                0,
-                ResultsOrder::Relevance,
-                None,
-            )
-            .unwrap();
-        let exact_texts: Vec<&str> = exact.iter().map(|r| r.text.as_str()).collect();
-        assert!(
-            exact_texts.contains(&"שלום"),
-            "distance=0 must return exact match"
-        );
-        assert!(
-            !exact_texts.contains(&"שלם"),
-            "distance=0 must not return near-match"
-        );
-
-        // distance=1: must return both "שלום" and the near-match "שלם"
-        let fuzzy = engine
-            .search_fuzzy(
-                vec!["שלום".to_string()],
-                vec!["/root".to_string()],
-                10,
-                0,
-                1,
-                ResultsOrder::Relevance,
-                None,
-            )
-            .unwrap();
-        let fuzzy_texts: Vec<&str> = fuzzy.iter().map(|r| r.text.as_str()).collect();
-        assert!(
-            fuzzy_texts.contains(&"שלום"),
-            "distance=1 must return exact match"
-        );
-        assert!(
-            fuzzy_texts.contains(&"שלם"),
-            "distance=1 must return near-match one edit away"
-        );
-        assert!(
-            !fuzzy_texts.contains(&"ביי"),
-            "unrelated term must not appear"
-        );
-    }
-
-    #[test]
     fn test_search_and_count() {
         let (mut engine, _dir) = make_engine();
         add(&mut engine, 1, "שלום עולם", "/books/a.txt");
@@ -1136,26 +1044,17 @@ mod tests {
 
         let page = engine
             .search_and_count(
-                vec!["שלום".to_string()],
+                "שלום".to_string(),
                 vec!["/root".to_string()],
                 1,
                 0,
-                0,
-                100,
                 ResultsOrder::Relevance,
                 None,
             )
             .unwrap();
 
-        assert_eq!(
-            page.total_count, 2,
-            "total_count should reflect all hits, not just page size"
-        );
-        assert_eq!(
-            page.results.len(),
-            1,
-            "results should be limited by limit param"
-        );
+        assert_eq!(page.total_count, 2);
+        assert_eq!(page.results.len(), 1);
     }
 
     #[test]
@@ -1166,34 +1065,11 @@ mod tests {
         add(&mut engine, 3, "שלום חבר", "/books/c.txt");
         engine.commit().unwrap();
 
-        let page1 = engine
-            .search(
-                vec!["שלום".to_string()],
-                vec!["/root".to_string()],
-                2,
-                0,
-                0,
-                100,
-                ResultsOrder::Catalogue,
-                None,
-            )
-            .unwrap();
-        let page2 = engine
-            .search(
-                vec!["שלום".to_string()],
-                vec!["/root".to_string()],
-                2,
-                2,
-                0,
-                100,
-                ResultsOrder::Catalogue,
-                None,
-            )
-            .unwrap();
+        let page1 = engine.search("שלום".to_string(), vec!["/root".to_string()], 2, 0, ResultsOrder::Catalogue, None).unwrap();
+        let page2 = engine.search("שלום".to_string(), vec!["/root".to_string()], 2, 2, ResultsOrder::Catalogue, None).unwrap();
 
         assert_eq!(page1.len(), 2);
         assert_eq!(page2.len(), 1);
-        // Pages must not overlap
         let ids1: Vec<u64> = page1.iter().map(|r| r.id).collect();
         let ids2: Vec<u64> = page2.iter().map(|r| r.id).collect();
         assert!(ids1.iter().all(|id| !ids2.contains(id)));
@@ -1212,20 +1088,13 @@ mod tests {
         }
 
         let before = engine.get_segment_count().unwrap();
-        assert!(before > 1, "test setup should create multiple segments");
+        assert!(before > 1);
 
         engine.optimize().unwrap();
 
         let after = engine.get_segment_count().unwrap();
-
-        assert!(
-            after <= before,
-            "optimize should not increase segment count"
-        );
-        assert_eq!(
-            after, 1,
-            "after optimize there should be exactly one segment"
-        );
+        assert!(after <= before);
+        assert_eq!(after, 1);
         assert_eq!(engine.get_document_count(), 12);
     }
 
@@ -1247,10 +1116,7 @@ mod tests {
         engine.optimize().unwrap();
         let after_ids = search_ids(&mut engine, "שלום");
 
-        assert_eq!(
-            before_ids, after_ids,
-            "optimize must preserve search results"
-        );
+        assert_eq!(before_ids, after_ids);
     }
 
     #[test]
@@ -1265,18 +1131,7 @@ mod tests {
 
         engine.optimize().unwrap();
 
-        engine
-            .upsert_document(
-                1,
-                "title",
-                "ref",
-                "/root",
-                "טקסט חדש",
-                0,
-                false,
-                "/books/a.txt",
-            )
-            .unwrap();
+        engine.upsert_document(1, "title", "ref", "/root", "טקסט חדש", 0, false, "/books/a.txt").unwrap();
         engine.delete_document_by_id(2).unwrap();
         engine.commit().unwrap();
 
@@ -1354,5 +1209,114 @@ mod tests {
 
         assert_eq!(engine.get_document_count(), 0);
         assert_eq!(search_ids(&mut engine, "שלום"), Vec::<u64>::new());
+    }
+
+    #[test]
+    fn test_count_by_book_multi_segment() {
+        let (mut engine, _dir) = make_engine();
+        add(&mut engine, 1, "שלום עולם", "/books/a.txt");
+        engine.commit().unwrap();
+        add(&mut engine, 2, "שלום רב", "/books/a.txt");
+        add(&mut engine, 3, "שלום חבר", "/books/b.txt");
+        engine.commit().unwrap();
+
+        let counts = engine
+            .count_by_book("שלום".to_string(), vec!["/root".to_string()])
+            .unwrap();
+
+        assert_eq!(counts.get("/books/a.txt").copied(), Some(2));
+        assert_eq!(counts.get("/books/b.txt").copied(), Some(1));
+    }
+
+    #[test]
+    fn test_nikud_stripped_at_index_time() {
+        let (mut engine, _dir) = make_engine();
+        // Indexed text contains nikud + cantillation
+        add(&mut engine, 1, "שָׁלוֹם עוֹלָם", "/books/a.txt");
+        add(&mut engine, 2, "ביי", "/books/b.txt");
+        engine.commit().unwrap();
+
+        // Query without nikud must still match the nikud-bearing document
+        let ids = search_ids(&mut engine, "שלום");
+        assert_eq!(ids, vec![1]);
+
+        let ids = search_ids(&mut engine, "עולם");
+        assert_eq!(ids, vec![1]);
+    }
+
+    #[test]
+    fn test_html_stripped_at_index_time() {
+        let (mut engine, _dir) = make_engine();
+        // Indexed text contains HTML markup
+        add(&mut engine, 1, "<p>שלום <b>עולם</b></p>", "/books/a.txt");
+        add(&mut engine, 2, "<div>חבר</div>", "/books/b.txt");
+        engine.commit().unwrap();
+
+        let ids = search_ids(&mut engine, "שלום");
+        assert_eq!(ids, vec![1]);
+
+        let ids = search_ids(&mut engine, "עולם");
+        assert_eq!(ids, vec![1]);
+
+        let ids = search_ids(&mut engine, "חבר");
+        assert_eq!(ids, vec![2]);
+
+        // Tag names must NOT be indexed
+        let ids = search_ids(&mut engine, "div");
+        assert!(ids.is_empty());
+    }
+
+    #[test]
+    fn test_optional_char_through_search_api() {
+        let (mut engine, _dir) = make_engine();
+        // "שלום" and "שלם" — the ? should match both
+        add(&mut engine, 1, "שלום", "/books/a.txt");
+        add(&mut engine, 2, "שלם", "/books/b.txt");
+        add(&mut engine, 3, "ביי", "/books/c.txt");
+        engine.commit().unwrap();
+
+        // "שלו?ם" → ו is optional → matches both "שלום" and "שלם"
+        let ids = search_ids(&mut engine, "שלו?ם");
+        assert!(ids.contains(&1), "שלום should match שלו?ם");
+        assert!(ids.contains(&2), "שלם should match שלו?ם");
+        assert!(!ids.contains(&3));
+    }
+
+    #[test]
+    fn test_snippet_strips_html_tags() {
+        let (mut engine, _dir) = make_engine();
+        add(&mut engine, 1, "<p>שלום <b>עולם</b> חבר</p>", "/books/a.txt");
+        engine.commit().unwrap();
+
+        let results = engine
+            .search(
+                "חבר".to_string(),
+                vec!["/root".to_string()],
+                10,
+                0,
+                ResultsOrder::Catalogue,
+                None,
+            )
+            .unwrap();
+
+        assert_eq!(results.len(), 1);
+        // Snippet HTML must not contain the source <p> or </p> tags
+        assert!(!results[0].text.contains("<p>"), "got: {}", results[0].text);
+        assert!(!results[0].text.contains("</p>"), "got: {}", results[0].text);
+    }
+
+    #[test]
+    fn test_mixed_wildcard_and_fuzzy_or_group() {
+        let (mut engine, _dir) = make_engine();
+        add(&mut engine, 1, "שלום עולם", "/books/a.txt");
+        add(&mut engine, 2, "שלמה רב", "/books/b.txt");
+        add(&mut engine, 3, "ביי חבר", "/books/c.txt");
+        engine.commit().unwrap();
+
+        // wildcard ש* OR fuzzy שלמה~1 — both are valid alternatives in the same OR slot
+        let ids = search_ids(&mut engine, "שלום | שלמה~1");
+        assert!(ids.contains(&1));
+        assert!(ids.contains(&2));
+        assert!(!ids.contains(&3));
     }
 }

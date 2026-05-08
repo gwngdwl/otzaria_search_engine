@@ -26,8 +26,6 @@
 
 // Section: imports
 
-use crate::api::benchmark::*;
-use crate::api::reference_search_engine::*;
 use crate::api::search_engine::*;
 use flutter_rust_bridge::for_generated::byteorder::{NativeEndian, ReadBytesExt, WriteBytesExt};
 use flutter_rust_bridge::for_generated::{transform_result_dco, Lifetimeable, Lockable};
@@ -41,7 +39,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1951502943;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1397760606;
 
 // Section: executor
 
@@ -49,604 +47,6 @@ flutter_rust_bridge::frb_generated_default_handler!();
 
 // Section: wire_funcs
 
-fn wire__crate__api__reference_search_engine__ReferenceSearchEngine_add_document_impl(
-    port_: flutter_rust_bridge::for_generated::MessagePort,
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec,_,_>(flutter_rust_bridge::for_generated::TaskInfo{ debug_name: "ReferenceSearchEngine_add_document", port: Some(port_), mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal }, move || { 
-            let message = unsafe { flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(ptr_, rust_vec_len_, data_len_) };
-            let mut deserializer = flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ReferenceSearchEngine>>>::sse_decode(&mut deserializer);
-let api__id = <u64>::sse_decode(&mut deserializer);
-let api__title = <String>::sse_decode(&mut deserializer);
-let api__reference = <String>::sse_decode(&mut deserializer);
-let api__short_ref = <String>::sse_decode(&mut deserializer);
-let api__segment = <u64>::sse_decode(&mut deserializer);
-let api__is_pdf = <bool>::sse_decode(&mut deserializer);
-let api__file_path = <String>::sse_decode(&mut deserializer);deserializer.end(); move |context|  {
-                    transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>((move ||  {
-                        let mut api_that_guard = None;
-let decode_indices_ = flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(&api_that, 0, true)]);
-        for i in decode_indices_ {
-            match i {
-                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref_mut()),
-                _ => unreachable!(),
-            }
-        }
-        let mut api_that_guard = api_that_guard.unwrap();
- let output_ok = crate::api::reference_search_engine::ReferenceSearchEngine::add_document(&mut *api_that_guard, api__id, &api__title, &api__reference, &api__short_ref, api__segment, api__is_pdf, &api__file_path)?;   Ok(output_ok)
-                    })())
-                } })
-}
-fn wire__crate__api__reference_search_engine__ReferenceSearchEngine_add_documents_batch_impl(
-    port_: flutter_rust_bridge::for_generated::MessagePort,
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec,_,_>(flutter_rust_bridge::for_generated::TaskInfo{ debug_name: "ReferenceSearchEngine_add_documents_batch", port: Some(port_), mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal }, move || { 
-            let message = unsafe { flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(ptr_, rust_vec_len_, data_len_) };
-            let mut deserializer = flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ReferenceSearchEngine>>>::sse_decode(&mut deserializer);
-let api_docs = <Vec<crate::api::reference_search_engine::ReferenceDocumentInput>>::sse_decode(&mut deserializer);deserializer.end(); move |context|  {
-                    transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>((move ||  {
-                        let mut api_that_guard = None;
-let decode_indices_ = flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(&api_that, 0, true)]);
-        for i in decode_indices_ {
-            match i {
-                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref_mut()),
-                _ => unreachable!(),
-            }
-        }
-        let mut api_that_guard = api_that_guard.unwrap();
- let output_ok = crate::api::reference_search_engine::ReferenceSearchEngine::add_documents_batch(&mut *api_that_guard, api_docs)?;   Ok(output_ok)
-                    })())
-                } })
-}
-fn wire__crate__api__reference_search_engine__ReferenceSearchEngine_clear_impl(
-    port_: flutter_rust_bridge::for_generated::MessagePort,
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ReferenceSearchEngine_clear",
-            port: Some(port_),
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ReferenceSearchEngine>,
-            >>::sse_decode(&mut deserializer);
-            deserializer.end();
-            move |context| {
-                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
-                    (move || {
-                        let mut api_that_guard = None;
-                        let decode_indices_ =
-                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
-                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                                    &api_that, 0, false,
-                                )],
-                            );
-                        for i in decode_indices_ {
-                            match i {
-                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
-                                _ => unreachable!(),
-                            }
-                        }
-                        let api_that_guard = api_that_guard.unwrap();
-                        let output_ok =
-                            crate::api::reference_search_engine::ReferenceSearchEngine::clear(
-                                &*api_that_guard,
-                            )?;
-                        Ok(output_ok)
-                    })(),
-                )
-            }
-        },
-    )
-}
-fn wire__crate__api__reference_search_engine__ReferenceSearchEngine_commit_impl(
-    port_: flutter_rust_bridge::for_generated::MessagePort,
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ReferenceSearchEngine_commit",
-            port: Some(port_),
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ReferenceSearchEngine>,
-            >>::sse_decode(&mut deserializer);
-            deserializer.end();
-            move |context| {
-                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
-                    (move || {
-                        let mut api_that_guard = None;
-                        let decode_indices_ =
-                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
-                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                                    &api_that, 0, true,
-                                )],
-                            );
-                        for i in decode_indices_ {
-                            match i {
-                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref_mut()),
-                                _ => unreachable!(),
-                            }
-                        }
-                        let mut api_that_guard = api_that_guard.unwrap();
-                        let output_ok =
-                            crate::api::reference_search_engine::ReferenceSearchEngine::commit(
-                                &mut *api_that_guard,
-                            )?;
-                        Ok(output_ok)
-                    })(),
-                )
-            }
-        },
-    )
-}
-fn wire__crate__api__reference_search_engine__ReferenceSearchEngine_count_impl(
-    port_: flutter_rust_bridge::for_generated::MessagePort,
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ReferenceSearchEngine_count",
-            port: Some(port_),
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ReferenceSearchEngine>,
-            >>::sse_decode(&mut deserializer);
-            let api_query = <String>::sse_decode(&mut deserializer);
-            let api_fuzzy = <bool>::sse_decode(&mut deserializer);
-            deserializer.end();
-            move |context| {
-                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
-                    (move || {
-                        let mut api_that_guard = None;
-                        let decode_indices_ =
-                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
-                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                                    &api_that, 0, true,
-                                )],
-                            );
-                        for i in decode_indices_ {
-                            match i {
-                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref_mut()),
-                                _ => unreachable!(),
-                            }
-                        }
-                        let mut api_that_guard = api_that_guard.unwrap();
-                        let output_ok =
-                            crate::api::reference_search_engine::ReferenceSearchEngine::count(
-                                &mut *api_that_guard,
-                                &api_query,
-                                api_fuzzy,
-                            )?;
-                        Ok(output_ok)
-                    })(),
-                )
-            }
-        },
-    )
-}
-fn wire__crate__api__reference_search_engine__ReferenceSearchEngine_delete_document_by_id_impl(
-    port_: flutter_rust_bridge::for_generated::MessagePort,
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec,_,_>(flutter_rust_bridge::for_generated::TaskInfo{ debug_name: "ReferenceSearchEngine_delete_document_by_id", port: Some(port_), mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal }, move || { 
-            let message = unsafe { flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(ptr_, rust_vec_len_, data_len_) };
-            let mut deserializer = flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ReferenceSearchEngine>>>::sse_decode(&mut deserializer);
-let api_id = <u64>::sse_decode(&mut deserializer);deserializer.end(); move |context|  {
-                    transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>((move ||  {
-                        let mut api_that_guard = None;
-let decode_indices_ = flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(&api_that, 0, true)]);
-        for i in decode_indices_ {
-            match i {
-                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref_mut()),
-                _ => unreachable!(),
-            }
-        }
-        let mut api_that_guard = api_that_guard.unwrap();
- let output_ok = crate::api::reference_search_engine::ReferenceSearchEngine::delete_document_by_id(&mut *api_that_guard, api_id)?;   Ok(output_ok)
-                    })())
-                } })
-}
-fn wire__crate__api__reference_search_engine__ReferenceSearchEngine_new_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ReferenceSearchEngine_new",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_path = <String>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let output_ok = Result::<_, ()>::Ok(
-                    crate::api::reference_search_engine::ReferenceSearchEngine::new(&api_path),
-                )?;
-                Ok(output_ok)
-            })())
-        },
-    )
-}
-fn wire__crate__api__reference_search_engine__ReferenceSearchEngine_rollback_impl(
-    port_: flutter_rust_bridge::for_generated::MessagePort,
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ReferenceSearchEngine_rollback",
-            port: Some(port_),
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ReferenceSearchEngine>,
-            >>::sse_decode(&mut deserializer);
-            deserializer.end();
-            move |context| {
-                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
-                    (move || {
-                        let mut api_that_guard = None;
-                        let decode_indices_ =
-                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
-                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                                    &api_that, 0, true,
-                                )],
-                            );
-                        for i in decode_indices_ {
-                            match i {
-                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref_mut()),
-                                _ => unreachable!(),
-                            }
-                        }
-                        let mut api_that_guard = api_that_guard.unwrap();
-                        let output_ok =
-                            crate::api::reference_search_engine::ReferenceSearchEngine::rollback(
-                                &mut *api_that_guard,
-                            )?;
-                        Ok(output_ok)
-                    })(),
-                )
-            }
-        },
-    )
-}
-fn wire__crate__api__reference_search_engine__ReferenceSearchEngine_search_impl(
-    port_: flutter_rust_bridge::for_generated::MessagePort,
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ReferenceSearchEngine_search",
-            port: Some(port_),
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ReferenceSearchEngine>,
-            >>::sse_decode(&mut deserializer);
-            let api_query = <String>::sse_decode(&mut deserializer);
-            let api_limit = <u32>::sse_decode(&mut deserializer);
-            let api_fuzzy = <bool>::sse_decode(&mut deserializer);
-            let api_order =
-                <crate::api::search_engine::ResultsOrder>::sse_decode(&mut deserializer);
-            deserializer.end();
-            move |context| {
-                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
-                    (move || {
-                        let mut api_that_guard = None;
-                        let decode_indices_ =
-                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
-                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                                    &api_that, 0, true,
-                                )],
-                            );
-                        for i in decode_indices_ {
-                            match i {
-                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref_mut()),
-                                _ => unreachable!(),
-                            }
-                        }
-                        let mut api_that_guard = api_that_guard.unwrap();
-                        let output_ok =
-                            crate::api::reference_search_engine::ReferenceSearchEngine::search(
-                                &mut *api_that_guard,
-                                &api_query,
-                                api_limit,
-                                api_fuzzy,
-                                api_order,
-                            )?;
-                        Ok(output_ok)
-                    })(),
-                )
-            }
-        },
-    )
-}
-fn wire__crate__api__reference_search_engine__ReferenceSearchEngine_upsert_document_impl(
-    port_: flutter_rust_bridge::for_generated::MessagePort,
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec,_,_>(flutter_rust_bridge::for_generated::TaskInfo{ debug_name: "ReferenceSearchEngine_upsert_document", port: Some(port_), mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal }, move || { 
-            let message = unsafe { flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(ptr_, rust_vec_len_, data_len_) };
-            let mut deserializer = flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ReferenceSearchEngine>>>::sse_decode(&mut deserializer);
-let api__id = <u64>::sse_decode(&mut deserializer);
-let api__title = <String>::sse_decode(&mut deserializer);
-let api__reference = <String>::sse_decode(&mut deserializer);
-let api__short_ref = <String>::sse_decode(&mut deserializer);
-let api__segment = <u64>::sse_decode(&mut deserializer);
-let api__is_pdf = <bool>::sse_decode(&mut deserializer);
-let api__file_path = <String>::sse_decode(&mut deserializer);deserializer.end(); move |context|  {
-                    transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>((move ||  {
-                        let mut api_that_guard = None;
-let decode_indices_ = flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(&api_that, 0, true)]);
-        for i in decode_indices_ {
-            match i {
-                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref_mut()),
-                _ => unreachable!(),
-            }
-        }
-        let mut api_that_guard = api_that_guard.unwrap();
- let output_ok = crate::api::reference_search_engine::ReferenceSearchEngine::upsert_document(&mut *api_that_guard, api__id, &api__title, &api__reference, &api__short_ref, api__segment, api__is_pdf, &api__file_path)?;   Ok(output_ok)
-                    })())
-                } })
-}
-fn wire__crate__api__reference_search_engine__ReferenceSearchEngine_upsert_documents_batch_impl(
-    port_: flutter_rust_bridge::for_generated::MessagePort,
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec,_,_>(flutter_rust_bridge::for_generated::TaskInfo{ debug_name: "ReferenceSearchEngine_upsert_documents_batch", port: Some(port_), mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal }, move || { 
-            let message = unsafe { flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(ptr_, rust_vec_len_, data_len_) };
-            let mut deserializer = flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ReferenceSearchEngine>>>::sse_decode(&mut deserializer);
-let api_docs = <Vec<crate::api::reference_search_engine::ReferenceDocumentInput>>::sse_decode(&mut deserializer);deserializer.end(); move |context|  {
-                    transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>((move ||  {
-                        let mut api_that_guard = None;
-let decode_indices_ = flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(&api_that, 0, true)]);
-        for i in decode_indices_ {
-            match i {
-                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref_mut()),
-                _ => unreachable!(),
-            }
-        }
-        let mut api_that_guard = api_that_guard.unwrap();
- let output_ok = crate::api::reference_search_engine::ReferenceSearchEngine::upsert_documents_batch(&mut *api_that_guard, api_docs)?;   Ok(output_ok)
-                    })())
-                } })
-}
-fn wire__crate__api__benchmark__RegexBenchmarker_benchmark_custom_queries_impl(
-    port_: flutter_rust_bridge::for_generated::MessagePort,
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "RegexBenchmarker_benchmark_custom_queries",
-            port: Some(port_),
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<RegexBenchmarker>,
-            >>::sse_decode(&mut deserializer);
-            let api_custom_queries =
-                <Vec<crate::api::benchmark::TestCase>>::sse_decode(&mut deserializer);
-            deserializer.end();
-            move |context| {
-                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
-                    (move || {
-                        let mut api_that_guard = None;
-                        let decode_indices_ =
-                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
-                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                                    &api_that, 0, true,
-                                )],
-                            );
-                        for i in decode_indices_ {
-                            match i {
-                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref_mut()),
-                                _ => unreachable!(),
-                            }
-                        }
-                        let mut api_that_guard = api_that_guard.unwrap();
-                        let output_ok =
-                            crate::api::benchmark::RegexBenchmarker::benchmark_custom_queries(
-                                &mut *api_that_guard,
-                                api_custom_queries,
-                            )?;
-                        Ok(output_ok)
-                    })(),
-                )
-            }
-        },
-    )
-}
-fn wire__crate__api__benchmark__RegexBenchmarker_new_impl(
-    port_: flutter_rust_bridge::for_generated::MessagePort,
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "RegexBenchmarker_new",
-            port: Some(port_),
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_index_path = <String>::sse_decode(&mut deserializer);
-            deserializer.end();
-            move |context| {
-                transform_result_sse::<_, ()>((move || {
-                    let output_ok = Result::<_, ()>::Ok(
-                        crate::api::benchmark::RegexBenchmarker::new(&api_index_path),
-                    )?;
-                    Ok(output_ok)
-                })())
-            }
-        },
-    )
-}
-fn wire__crate__api__benchmark__RegexBenchmarker_run_comprehensive_benchmark_impl(
-    port_: flutter_rust_bridge::for_generated::MessagePort,
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "RegexBenchmarker_run_comprehensive_benchmark",
-            port: Some(port_),
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<RegexBenchmarker>,
-            >>::sse_decode(&mut deserializer);
-            deserializer.end();
-            move |context| {
-                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
-                    (move || {
-                        let mut api_that_guard = None;
-                        let decode_indices_ =
-                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
-                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                                    &api_that, 0, true,
-                                )],
-                            );
-                        for i in decode_indices_ {
-                            match i {
-                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref_mut()),
-                                _ => unreachable!(),
-                            }
-                        }
-                        let mut api_that_guard = api_that_guard.unwrap();
-                        let output_ok =
-                            crate::api::benchmark::RegexBenchmarker::run_comprehensive_benchmark(
-                                &mut *api_that_guard,
-                            )?;
-                        Ok(output_ok)
-                    })(),
-                )
-            }
-        },
-    )
-}
 fn wire__crate__api__search_engine__SearchEngine_add_document_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -902,10 +302,8 @@ fn wire__crate__api__search_engine__SearchEngine_count_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SearchEngine>,
             >>::sse_decode(&mut deserializer);
-            let api_regex_terms = <Vec<String>>::sse_decode(&mut deserializer);
+            let api_query = <String>::sse_decode(&mut deserializer);
             let api_facets = <Vec<String>>::sse_decode(&mut deserializer);
-            let api_slop = <u32>::sse_decode(&mut deserializer);
-            let api_max_expansions = <u32>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
@@ -926,10 +324,8 @@ fn wire__crate__api__search_engine__SearchEngine_count_impl(
                         let mut api_that_guard = api_that_guard.unwrap();
                         let output_ok = crate::api::search_engine::SearchEngine::count(
                             &mut *api_that_guard,
-                            api_regex_terms,
-                            &api_facets,
-                            api_slop,
-                            api_max_expansions,
+                            api_query,
+                            api_facets,
                         )?;
                         Ok(output_ok)
                     })(),
@@ -963,10 +359,8 @@ fn wire__crate__api__search_engine__SearchEngine_count_by_book_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SearchEngine>,
             >>::sse_decode(&mut deserializer);
-            let api_regex_terms = <Vec<String>>::sse_decode(&mut deserializer);
+            let api_query = <String>::sse_decode(&mut deserializer);
             let api_facets = <Vec<String>>::sse_decode(&mut deserializer);
-            let api_slop = <u32>::sse_decode(&mut deserializer);
-            let api_max_expansions = <u32>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
@@ -987,10 +381,8 @@ fn wire__crate__api__search_engine__SearchEngine_count_by_book_impl(
                         let mut api_that_guard = api_that_guard.unwrap();
                         let output_ok = crate::api::search_engine::SearchEngine::count_by_book(
                             &mut *api_that_guard,
-                            api_regex_terms,
+                            api_query,
                             api_facets,
-                            api_slop,
-                            api_max_expansions,
                         )?;
                         Ok(output_ok)
                     })(),
@@ -1189,11 +581,9 @@ fn wire__crate__api__search_engine__SearchEngine_get_facet_counts_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SearchEngine>,
             >>::sse_decode(&mut deserializer);
-            let api_regex_terms = <Vec<String>>::sse_decode(&mut deserializer);
+            let api_query = <String>::sse_decode(&mut deserializer);
             let api_facets = <Vec<String>>::sse_decode(&mut deserializer);
             let api_facet_prefix = <String>::sse_decode(&mut deserializer);
-            let api_slop = <u32>::sse_decode(&mut deserializer);
-            let api_max_expansions = <u32>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
@@ -1214,11 +604,9 @@ fn wire__crate__api__search_engine__SearchEngine_get_facet_counts_impl(
                         let mut api_that_guard = api_that_guard.unwrap();
                         let output_ok = crate::api::search_engine::SearchEngine::get_facet_counts(
                             &mut *api_that_guard,
-                            api_regex_terms,
+                            api_query,
                             api_facets,
                             api_facet_prefix,
-                            api_slop,
-                            api_max_expansions,
                         )?;
                         Ok(output_ok)
                     })(),
@@ -1498,12 +886,10 @@ fn wire__crate__api__search_engine__SearchEngine_search_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SearchEngine>,
             >>::sse_decode(&mut deserializer);
-            let api_regex_terms = <Vec<String>>::sse_decode(&mut deserializer);
+            let api_query = <String>::sse_decode(&mut deserializer);
             let api_facets = <Vec<String>>::sse_decode(&mut deserializer);
             let api_limit = <u32>::sse_decode(&mut deserializer);
             let api_offset = <u32>::sse_decode(&mut deserializer);
-            let api_slop = <u32>::sse_decode(&mut deserializer);
-            let api_max_expansions = <u32>::sse_decode(&mut deserializer);
             let api_order =
                 <crate::api::search_engine::ResultsOrder>::sse_decode(&mut deserializer);
             let api_highlight =
@@ -1528,12 +914,10 @@ fn wire__crate__api__search_engine__SearchEngine_search_impl(
                         let mut api_that_guard = api_that_guard.unwrap();
                         let output_ok = crate::api::search_engine::SearchEngine::search(
                             &mut *api_that_guard,
-                            api_regex_terms,
+                            api_query,
                             api_facets,
                             api_limit,
                             api_offset,
-                            api_slop,
-                            api_max_expansions,
                             api_order,
                             api_highlight,
                         )?;
@@ -1569,12 +953,10 @@ fn wire__crate__api__search_engine__SearchEngine_search_and_count_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SearchEngine>,
             >>::sse_decode(&mut deserializer);
-            let api_regex_terms = <Vec<String>>::sse_decode(&mut deserializer);
+            let api_query = <String>::sse_decode(&mut deserializer);
             let api_facets = <Vec<String>>::sse_decode(&mut deserializer);
             let api_limit = <u32>::sse_decode(&mut deserializer);
             let api_offset = <u32>::sse_decode(&mut deserializer);
-            let api_slop = <u32>::sse_decode(&mut deserializer);
-            let api_max_expansions = <u32>::sse_decode(&mut deserializer);
             let api_order =
                 <crate::api::search_engine::ResultsOrder>::sse_decode(&mut deserializer);
             let api_highlight =
@@ -1599,81 +981,10 @@ fn wire__crate__api__search_engine__SearchEngine_search_and_count_impl(
                         let mut api_that_guard = api_that_guard.unwrap();
                         let output_ok = crate::api::search_engine::SearchEngine::search_and_count(
                             &mut *api_that_guard,
-                            api_regex_terms,
+                            api_query,
                             api_facets,
                             api_limit,
                             api_offset,
-                            api_slop,
-                            api_max_expansions,
-                            api_order,
-                            api_highlight,
-                        )?;
-                        Ok(output_ok)
-                    })(),
-                )
-            }
-        },
-    )
-}
-fn wire__crate__api__search_engine__SearchEngine_search_fuzzy_impl(
-    port_: flutter_rust_bridge::for_generated::MessagePort,
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "SearchEngine_search_fuzzy",
-            port: Some(port_),
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SearchEngine>,
-            >>::sse_decode(&mut deserializer);
-            let api_terms = <Vec<String>>::sse_decode(&mut deserializer);
-            let api_facets = <Vec<String>>::sse_decode(&mut deserializer);
-            let api_limit = <u32>::sse_decode(&mut deserializer);
-            let api_offset = <u32>::sse_decode(&mut deserializer);
-            let api_max_distance = <u8>::sse_decode(&mut deserializer);
-            let api_order =
-                <crate::api::search_engine::ResultsOrder>::sse_decode(&mut deserializer);
-            let api_highlight =
-                <Option<crate::api::search_engine::HighlightConfig>>::sse_decode(&mut deserializer);
-            deserializer.end();
-            move |context| {
-                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
-                    (move || {
-                        let mut api_that_guard = None;
-                        let decode_indices_ =
-                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
-                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                                    &api_that, 0, true,
-                                )],
-                            );
-                        for i in decode_indices_ {
-                            match i {
-                                0 => api_that_guard = Some(api_that.lockable_decode_sync_ref_mut()),
-                                _ => unreachable!(),
-                            }
-                        }
-                        let mut api_that_guard = api_that_guard.unwrap();
-                        let output_ok = crate::api::search_engine::SearchEngine::search_fuzzy(
-                            &mut *api_that_guard,
-                            api_terms,
-                            api_facets,
-                            api_limit,
-                            api_offset,
-                            api_max_distance,
                             api_order,
                             api_highlight,
                         )?;
@@ -1709,12 +1020,10 @@ fn wire__crate__api__search_engine__SearchEngine_search_stream_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SearchEngine>,
             >>::sse_decode(&mut deserializer);
-            let api_regex_terms = <Vec<String>>::sse_decode(&mut deserializer);
+            let api_query = <String>::sse_decode(&mut deserializer);
             let api_facets = <Vec<String>>::sse_decode(&mut deserializer);
             let api_limit = <u32>::sse_decode(&mut deserializer);
             let api_offset = <u32>::sse_decode(&mut deserializer);
-            let api_slop = <u32>::sse_decode(&mut deserializer);
-            let api_max_expansions = <u32>::sse_decode(&mut deserializer);
             let api_order =
                 <crate::api::search_engine::ResultsOrder>::sse_decode(&mut deserializer);
             let api_highlight =
@@ -1744,12 +1053,10 @@ fn wire__crate__api__search_engine__SearchEngine_search_stream_impl(
                         let api_that_guard = api_that_guard.unwrap();
                         let output_ok = crate::api::search_engine::SearchEngine::search_stream(
                             &*api_that_guard,
-                            api_regex_terms,
+                            api_query,
                             api_facets,
                             api_limit,
                             api_offset,
-                            api_slop,
-                            api_max_expansions,
                             api_order,
                             api_highlight,
                             api_chunk_size,
@@ -1888,83 +1195,9 @@ fn wire__crate__api__search_engine__SearchEngine_upsert_documents_batch_impl(
         },
     )
 }
-fn wire__crate__api__diagnostic_test__run_diagnostic_test_impl(
-    port_: flutter_rust_bridge::for_generated::MessagePort,
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "run_diagnostic_test",
-            port: Some(port_),
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            deserializer.end();
-            move |context| {
-                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
-                    (move || {
-                        let output_ok = crate::api::diagnostic_test::run_diagnostic_test()?;
-                        Ok(output_ok)
-                    })(),
-                )
-            }
-        },
-    )
-}
-fn wire__crate__api__focused_benchmark__run_focused_benchmark_impl(
-    port_: flutter_rust_bridge::for_generated::MessagePort,
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "run_focused_benchmark",
-            port: Some(port_),
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            deserializer.end();
-            move |context| {
-                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
-                    (move || {
-                        let output_ok = crate::api::focused_benchmark::run_focused_benchmark()?;
-                        Ok(output_ok)
-                    })(),
-                )
-            }
-        },
-    )
-}
 
 // Section: related_funcs
 
-flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
-    flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ReferenceSearchEngine>
-);
-flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
-    flutter_rust_bridge::for_generated::RustAutoOpaqueInner<RegexBenchmarker>
-);
 flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
     flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SearchEngine>
 );
@@ -1976,26 +1209,6 @@ impl SseDecode for flutter_rust_bridge::for_generated::anyhow::Error {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut inner = <String>::sse_decode(deserializer);
         return flutter_rust_bridge::for_generated::anyhow::anyhow!("{}", inner);
-    }
-}
-
-impl SseDecode for ReferenceSearchEngine {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut inner = <RustOpaqueMoi<
-            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ReferenceSearchEngine>,
-        >>::sse_decode(deserializer);
-        return flutter_rust_bridge::for_generated::rust_auto_opaque_decode_owned(inner);
-    }
-}
-
-impl SseDecode for RegexBenchmarker {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut inner = <RustOpaqueMoi<
-            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<RegexBenchmarker>,
-        >>::sse_decode(deserializer);
-        return flutter_rust_bridge::for_generated::rust_auto_opaque_decode_owned(inner);
     }
 }
 
@@ -2014,28 +1227,6 @@ impl SseDecode for std::collections::HashMap<String, u32> {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut inner = <Vec<(String, u32)>>::sse_decode(deserializer);
         return inner.into_iter().collect();
-    }
-}
-
-impl SseDecode
-    for RustOpaqueMoi<
-        flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ReferenceSearchEngine>,
-    >
-{
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut inner = <usize>::sse_decode(deserializer);
-        return decode_rust_opaque_moi(inner);
-    }
-}
-
-impl SseDecode
-    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<RegexBenchmarker>>
-{
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut inner = <usize>::sse_decode(deserializer);
-        return decode_rust_opaque_moi(inner);
     }
 }
 
@@ -2070,53 +1261,6 @@ impl SseDecode for String {
     }
 }
 
-impl SseDecode for crate::api::benchmark::BenchmarkResult {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_queryName = <String>::sse_decode(deserializer);
-        let mut var_regexTerms = <Vec<String>>::sse_decode(deserializer);
-        let mut var_facets = <Vec<String>>::sse_decode(deserializer);
-        let mut var_slop = <u32>::sse_decode(deserializer);
-        let mut var_maxExpansions = <u32>::sse_decode(deserializer);
-        let mut var_executionTimeMs = <u64>::sse_decode(deserializer);
-        let mut var_resultCount = <u32>::sse_decode(deserializer);
-        let mut var_memoryUsageMb = <f64>::sse_decode(deserializer);
-        return crate::api::benchmark::BenchmarkResult {
-            query_name: var_queryName,
-            regex_terms: var_regexTerms,
-            facets: var_facets,
-            slop: var_slop,
-            max_expansions: var_maxExpansions,
-            execution_time_ms: var_executionTimeMs,
-            result_count: var_resultCount,
-            memory_usage_mb: var_memoryUsageMb,
-        };
-    }
-}
-
-impl SseDecode for crate::api::benchmark::BenchmarkSuite {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_totalQueries = <usize>::sse_decode(deserializer);
-        let mut var_totalTimeMs = <u64>::sse_decode(deserializer);
-        let mut var_averageTimeMs = <f64>::sse_decode(deserializer);
-        let mut var_fastestQuery =
-            <Option<crate::api::benchmark::BenchmarkResult>>::sse_decode(deserializer);
-        let mut var_slowestQuery =
-            <Option<crate::api::benchmark::BenchmarkResult>>::sse_decode(deserializer);
-        let mut var_results =
-            <Vec<crate::api::benchmark::BenchmarkResult>>::sse_decode(deserializer);
-        return crate::api::benchmark::BenchmarkSuite {
-            total_queries: var_totalQueries,
-            total_time_ms: var_totalTimeMs,
-            average_time_ms: var_averageTimeMs,
-            fastest_query: var_fastestQuery,
-            slowest_query: var_slowestQuery,
-            results: var_results,
-        };
-    }
-}
-
 impl SseDecode for bool {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -2145,13 +1289,6 @@ impl SseDecode for crate::api::search_engine::DocumentInput {
             is_pdf: var_isPdf,
             file_path: var_filePath,
         };
-    }
-}
-
-impl SseDecode for f64 {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        deserializer.cursor.read_f64::<NativeEndian>().unwrap()
     }
 }
 
@@ -2195,20 +1332,6 @@ impl SseDecode for Vec<String> {
         let mut ans_ = Vec::with_capacity(len_ as usize);
         for idx_ in 0..len_ {
             ans_.push(<String>::sse_decode(deserializer));
-        }
-        return ans_;
-    }
-}
-
-impl SseDecode for Vec<crate::api::benchmark::BenchmarkResult> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut len_ = <i32>::sse_decode(deserializer);
-        let mut ans_ = Vec::with_capacity(len_ as usize);
-        for idx_ in 0..len_ {
-            ans_.push(<crate::api::benchmark::BenchmarkResult>::sse_decode(
-                deserializer,
-            ));
         }
         return ans_;
     }
@@ -2266,38 +1389,6 @@ impl SseDecode for Vec<(String, u32)> {
     }
 }
 
-impl SseDecode for Vec<crate::api::reference_search_engine::ReferenceDocumentInput> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut len_ = <i32>::sse_decode(deserializer);
-        let mut ans_ = Vec::with_capacity(len_ as usize);
-        for idx_ in 0..len_ {
-            ans_.push(
-                <crate::api::reference_search_engine::ReferenceDocumentInput>::sse_decode(
-                    deserializer,
-                ),
-            );
-        }
-        return ans_;
-    }
-}
-
-impl SseDecode for Vec<crate::api::reference_search_engine::ReferenceSearchResult> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut len_ = <i32>::sse_decode(deserializer);
-        let mut ans_ = Vec::with_capacity(len_ as usize);
-        for idx_ in 0..len_ {
-            ans_.push(
-                <crate::api::reference_search_engine::ReferenceSearchResult>::sse_decode(
-                    deserializer,
-                ),
-            );
-        }
-        return ans_;
-    }
-}
-
 impl SseDecode for Vec<crate::api::search_engine::SearchResult> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -2309,31 +1400,6 @@ impl SseDecode for Vec<crate::api::search_engine::SearchResult> {
             ));
         }
         return ans_;
-    }
-}
-
-impl SseDecode for Vec<crate::api::benchmark::TestCase> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut len_ = <i32>::sse_decode(deserializer);
-        let mut ans_ = Vec::with_capacity(len_ as usize);
-        for idx_ in 0..len_ {
-            ans_.push(<crate::api::benchmark::TestCase>::sse_decode(deserializer));
-        }
-        return ans_;
-    }
-}
-
-impl SseDecode for Option<crate::api::benchmark::BenchmarkResult> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        if (<bool>::sse_decode(deserializer)) {
-            return Some(<crate::api::benchmark::BenchmarkResult>::sse_decode(
-                deserializer,
-            ));
-        } else {
-            return None;
-        }
     }
 }
 
@@ -2372,50 +1438,6 @@ impl SseDecode for (String, u32) {
     }
 }
 
-impl SseDecode for crate::api::reference_search_engine::ReferenceDocumentInput {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_id = <u64>::sse_decode(deserializer);
-        let mut var_title = <String>::sse_decode(deserializer);
-        let mut var_reference = <String>::sse_decode(deserializer);
-        let mut var_shortRef = <String>::sse_decode(deserializer);
-        let mut var_segment = <u64>::sse_decode(deserializer);
-        let mut var_isPdf = <bool>::sse_decode(deserializer);
-        let mut var_filePath = <String>::sse_decode(deserializer);
-        return crate::api::reference_search_engine::ReferenceDocumentInput {
-            id: var_id,
-            title: var_title,
-            reference: var_reference,
-            short_ref: var_shortRef,
-            segment: var_segment,
-            is_pdf: var_isPdf,
-            file_path: var_filePath,
-        };
-    }
-}
-
-impl SseDecode for crate::api::reference_search_engine::ReferenceSearchResult {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_title = <String>::sse_decode(deserializer);
-        let mut var_reference = <String>::sse_decode(deserializer);
-        let mut var_shortRef = <String>::sse_decode(deserializer);
-        let mut var_id = <u64>::sse_decode(deserializer);
-        let mut var_segment = <u64>::sse_decode(deserializer);
-        let mut var_isPdf = <bool>::sse_decode(deserializer);
-        let mut var_filePath = <String>::sse_decode(deserializer);
-        return crate::api::reference_search_engine::ReferenceSearchResult {
-            title: var_title,
-            reference: var_reference,
-            short_ref: var_shortRef,
-            id: var_id,
-            segment: var_segment,
-            is_pdf: var_isPdf,
-            file_path: var_filePath,
-        };
-    }
-}
-
 impl SseDecode for crate::api::search_engine::ResultsOrder {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -2451,6 +1473,8 @@ impl SseDecode for crate::api::search_engine::SearchResult {
         let mut var_segment = <u64>::sse_decode(deserializer);
         let mut var_isPdf = <bool>::sse_decode(deserializer);
         let mut var_filePath = <String>::sse_decode(deserializer);
+        let mut var_score = <u32>::sse_decode(deserializer);
+        let mut var_wordDistance = <u32>::sse_decode(deserializer);
         return crate::api::search_engine::SearchResult {
             title: var_title,
             reference: var_reference,
@@ -2459,24 +1483,8 @@ impl SseDecode for crate::api::search_engine::SearchResult {
             segment: var_segment,
             is_pdf: var_isPdf,
             file_path: var_filePath,
-        };
-    }
-}
-
-impl SseDecode for crate::api::benchmark::TestCase {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_queryName = <String>::sse_decode(deserializer);
-        let mut var_regexTerms = <Vec<String>>::sse_decode(deserializer);
-        let mut var_facets = <Vec<String>>::sse_decode(deserializer);
-        let mut var_slop = <u32>::sse_decode(deserializer);
-        let mut var_maxExpansions = <u32>::sse_decode(deserializer);
-        return crate::api::benchmark::TestCase {
-            query_name: var_queryName,
-            regex_terms: var_regexTerms,
-            facets: var_facets,
-            slop: var_slop,
-            max_expansions: var_maxExpansions,
+            score: var_score,
+            word_distance: var_wordDistance,
         };
     }
 }
@@ -2523,43 +1531,122 @@ fn pde_ffi_dispatcher_primary_impl(
 ) {
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
-                        1 => wire__crate__api__reference_search_engine__ReferenceSearchEngine_add_document_impl(port, ptr, rust_vec_len, data_len),
-2 => wire__crate__api__reference_search_engine__ReferenceSearchEngine_add_documents_batch_impl(port, ptr, rust_vec_len, data_len),
-3 => wire__crate__api__reference_search_engine__ReferenceSearchEngine_clear_impl(port, ptr, rust_vec_len, data_len),
-4 => wire__crate__api__reference_search_engine__ReferenceSearchEngine_commit_impl(port, ptr, rust_vec_len, data_len),
-5 => wire__crate__api__reference_search_engine__ReferenceSearchEngine_count_impl(port, ptr, rust_vec_len, data_len),
-6 => wire__crate__api__reference_search_engine__ReferenceSearchEngine_delete_document_by_id_impl(port, ptr, rust_vec_len, data_len),
-8 => wire__crate__api__reference_search_engine__ReferenceSearchEngine_rollback_impl(port, ptr, rust_vec_len, data_len),
-9 => wire__crate__api__reference_search_engine__ReferenceSearchEngine_search_impl(port, ptr, rust_vec_len, data_len),
-10 => wire__crate__api__reference_search_engine__ReferenceSearchEngine_upsert_document_impl(port, ptr, rust_vec_len, data_len),
-11 => wire__crate__api__reference_search_engine__ReferenceSearchEngine_upsert_documents_batch_impl(port, ptr, rust_vec_len, data_len),
-12 => wire__crate__api__benchmark__RegexBenchmarker_benchmark_custom_queries_impl(port, ptr, rust_vec_len, data_len),
-13 => wire__crate__api__benchmark__RegexBenchmarker_new_impl(port, ptr, rust_vec_len, data_len),
-14 => wire__crate__api__benchmark__RegexBenchmarker_run_comprehensive_benchmark_impl(port, ptr, rust_vec_len, data_len),
-15 => wire__crate__api__search_engine__SearchEngine_add_document_impl(port, ptr, rust_vec_len, data_len),
-16 => wire__crate__api__search_engine__SearchEngine_add_documents_batch_impl(port, ptr, rust_vec_len, data_len),
-17 => wire__crate__api__search_engine__SearchEngine_clear_impl(port, ptr, rust_vec_len, data_len),
-18 => wire__crate__api__search_engine__SearchEngine_commit_impl(port, ptr, rust_vec_len, data_len),
-19 => wire__crate__api__search_engine__SearchEngine_count_impl(port, ptr, rust_vec_len, data_len),
-20 => wire__crate__api__search_engine__SearchEngine_count_by_book_impl(port, ptr, rust_vec_len, data_len),
-21 => wire__crate__api__search_engine__SearchEngine_delete_document_by_id_impl(port, ptr, rust_vec_len, data_len),
-22 => wire__crate__api__search_engine__SearchEngine_get_document_by_id_impl(port, ptr, rust_vec_len, data_len),
-23 => wire__crate__api__search_engine__SearchEngine_get_document_count_impl(port, ptr, rust_vec_len, data_len),
-24 => wire__crate__api__search_engine__SearchEngine_get_facet_counts_impl(port, ptr, rust_vec_len, data_len),
-25 => wire__crate__api__search_engine__SearchEngine_get_segment_count_impl(port, ptr, rust_vec_len, data_len),
-27 => wire__crate__api__search_engine__SearchEngine_optimize_impl(port, ptr, rust_vec_len, data_len),
-28 => wire__crate__api__search_engine__SearchEngine_remove_documents_by_title_impl(port, ptr, rust_vec_len, data_len),
-29 => wire__crate__api__search_engine__SearchEngine_rollback_impl(port, ptr, rust_vec_len, data_len),
-30 => wire__crate__api__search_engine__SearchEngine_search_impl(port, ptr, rust_vec_len, data_len),
-31 => wire__crate__api__search_engine__SearchEngine_search_and_count_impl(port, ptr, rust_vec_len, data_len),
-32 => wire__crate__api__search_engine__SearchEngine_search_fuzzy_impl(port, ptr, rust_vec_len, data_len),
-33 => wire__crate__api__search_engine__SearchEngine_search_stream_impl(port, ptr, rust_vec_len, data_len),
-34 => wire__crate__api__search_engine__SearchEngine_upsert_document_impl(port, ptr, rust_vec_len, data_len),
-35 => wire__crate__api__search_engine__SearchEngine_upsert_documents_batch_impl(port, ptr, rust_vec_len, data_len),
-36 => wire__crate__api__diagnostic_test__run_diagnostic_test_impl(port, ptr, rust_vec_len, data_len),
-37 => wire__crate__api__focused_benchmark__run_focused_benchmark_impl(port, ptr, rust_vec_len, data_len),
-                        _ => unreachable!(),
-                    }
+        1 => wire__crate__api__search_engine__SearchEngine_add_document_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        2 => wire__crate__api__search_engine__SearchEngine_add_documents_batch_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        3 => wire__crate__api__search_engine__SearchEngine_clear_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        4 => wire__crate__api__search_engine__SearchEngine_commit_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        5 => wire__crate__api__search_engine__SearchEngine_count_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        6 => wire__crate__api__search_engine__SearchEngine_count_by_book_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        7 => wire__crate__api__search_engine__SearchEngine_delete_document_by_id_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        8 => wire__crate__api__search_engine__SearchEngine_get_document_by_id_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        9 => wire__crate__api__search_engine__SearchEngine_get_document_count_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        10 => wire__crate__api__search_engine__SearchEngine_get_facet_counts_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        11 => wire__crate__api__search_engine__SearchEngine_get_segment_count_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        13 => wire__crate__api__search_engine__SearchEngine_optimize_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        14 => wire__crate__api__search_engine__SearchEngine_remove_documents_by_title_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        15 => wire__crate__api__search_engine__SearchEngine_rollback_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        16 => wire__crate__api__search_engine__SearchEngine_search_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        17 => wire__crate__api__search_engine__SearchEngine_search_and_count_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        18 => wire__crate__api__search_engine__SearchEngine_search_stream_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        19 => wire__crate__api__search_engine__SearchEngine_upsert_document_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        20 => wire__crate__api__search_engine__SearchEngine_upsert_documents_batch_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        _ => unreachable!(),
+    }
 }
 
 fn pde_ffi_dispatcher_sync_impl(
@@ -2570,52 +1657,12 @@ fn pde_ffi_dispatcher_sync_impl(
 ) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
-        7 => wire__crate__api__reference_search_engine__ReferenceSearchEngine_new_impl(
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        26 => wire__crate__api__search_engine__SearchEngine_new_impl(ptr, rust_vec_len, data_len),
+        12 => wire__crate__api__search_engine__SearchEngine_new_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
 
 // Section: rust2dart
-
-// Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for FrbWrapper<ReferenceSearchEngine> {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self.0)
-            .into_dart()
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for FrbWrapper<ReferenceSearchEngine>
-{
-}
-
-impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<ReferenceSearchEngine>>
-    for ReferenceSearchEngine
-{
-    fn into_into_dart(self) -> FrbWrapper<ReferenceSearchEngine> {
-        self.into()
-    }
-}
-
-// Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for FrbWrapper<RegexBenchmarker> {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self.0)
-            .into_dart()
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for FrbWrapper<RegexBenchmarker> {}
-
-impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<RegexBenchmarker>> for RegexBenchmarker {
-    fn into_into_dart(self) -> FrbWrapper<RegexBenchmarker> {
-        self.into()
-    }
-}
 
 // Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for FrbWrapper<SearchEngine> {
@@ -2632,58 +1679,6 @@ impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<SearchEngine>> for SearchEngin
     }
 }
 
-// Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::api::benchmark::BenchmarkResult {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        [
-            self.query_name.into_into_dart().into_dart(),
-            self.regex_terms.into_into_dart().into_dart(),
-            self.facets.into_into_dart().into_dart(),
-            self.slop.into_into_dart().into_dart(),
-            self.max_expansions.into_into_dart().into_dart(),
-            self.execution_time_ms.into_into_dart().into_dart(),
-            self.result_count.into_into_dart().into_dart(),
-            self.memory_usage_mb.into_into_dart().into_dart(),
-        ]
-        .into_dart()
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::api::benchmark::BenchmarkResult
-{
-}
-impl flutter_rust_bridge::IntoIntoDart<crate::api::benchmark::BenchmarkResult>
-    for crate::api::benchmark::BenchmarkResult
-{
-    fn into_into_dart(self) -> crate::api::benchmark::BenchmarkResult {
-        self
-    }
-}
-// Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::api::benchmark::BenchmarkSuite {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        [
-            self.total_queries.into_into_dart().into_dart(),
-            self.total_time_ms.into_into_dart().into_dart(),
-            self.average_time_ms.into_into_dart().into_dart(),
-            self.fastest_query.into_into_dart().into_dart(),
-            self.slowest_query.into_into_dart().into_dart(),
-            self.results.into_into_dart().into_dart(),
-        ]
-        .into_dart()
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::api::benchmark::BenchmarkSuite
-{
-}
-impl flutter_rust_bridge::IntoIntoDart<crate::api::benchmark::BenchmarkSuite>
-    for crate::api::benchmark::BenchmarkSuite
-{
-    fn into_into_dart(self) -> crate::api::benchmark::BenchmarkSuite {
-        self
-    }
-}
 // Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::search_engine::DocumentInput {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
@@ -2755,58 +1750,6 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::search_engine::HighlightConfi
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::api::reference_search_engine::ReferenceDocumentInput {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        [
-            self.id.into_into_dart().into_dart(),
-            self.title.into_into_dart().into_dart(),
-            self.reference.into_into_dart().into_dart(),
-            self.short_ref.into_into_dart().into_dart(),
-            self.segment.into_into_dart().into_dart(),
-            self.is_pdf.into_into_dart().into_dart(),
-            self.file_path.into_into_dart().into_dart(),
-        ]
-        .into_dart()
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::api::reference_search_engine::ReferenceDocumentInput
-{
-}
-impl flutter_rust_bridge::IntoIntoDart<crate::api::reference_search_engine::ReferenceDocumentInput>
-    for crate::api::reference_search_engine::ReferenceDocumentInput
-{
-    fn into_into_dart(self) -> crate::api::reference_search_engine::ReferenceDocumentInput {
-        self
-    }
-}
-// Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::api::reference_search_engine::ReferenceSearchResult {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        [
-            self.title.into_into_dart().into_dart(),
-            self.reference.into_into_dart().into_dart(),
-            self.short_ref.into_into_dart().into_dart(),
-            self.id.into_into_dart().into_dart(),
-            self.segment.into_into_dart().into_dart(),
-            self.is_pdf.into_into_dart().into_dart(),
-            self.file_path.into_into_dart().into_dart(),
-        ]
-        .into_dart()
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::api::reference_search_engine::ReferenceSearchResult
-{
-}
-impl flutter_rust_bridge::IntoIntoDart<crate::api::reference_search_engine::ReferenceSearchResult>
-    for crate::api::reference_search_engine::ReferenceSearchResult
-{
-    fn into_into_dart(self) -> crate::api::reference_search_engine::ReferenceSearchResult {
-        self
-    }
-}
-// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::search_engine::ResultsOrder {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         match self {
@@ -2859,6 +1802,8 @@ impl flutter_rust_bridge::IntoDart for crate::api::search_engine::SearchResult {
             self.segment.into_into_dart().into_dart(),
             self.is_pdf.into_into_dart().into_dart(),
             self.file_path.into_into_dart().into_dart(),
+            self.score.into_into_dart().into_dart(),
+            self.word_distance.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -2874,54 +1819,11 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::search_engine::SearchResult>
         self
     }
 }
-// Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::api::benchmark::TestCase {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        [
-            self.query_name.into_into_dart().into_dart(),
-            self.regex_terms.into_into_dart().into_dart(),
-            self.facets.into_into_dart().into_dart(),
-            self.slop.into_into_dart().into_dart(),
-            self.max_expansions.into_into_dart().into_dart(),
-        ]
-        .into_dart()
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::api::benchmark::TestCase
-{
-}
-impl flutter_rust_bridge::IntoIntoDart<crate::api::benchmark::TestCase>
-    for crate::api::benchmark::TestCase
-{
-    fn into_into_dart(self) -> crate::api::benchmark::TestCase {
-        self
-    }
-}
 
 impl SseEncode for flutter_rust_bridge::for_generated::anyhow::Error {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <String>::sse_encode(format!("{:?}", self), serializer);
-    }
-}
-
-impl SseEncode for ReferenceSearchEngine {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <RustOpaqueMoi<
-            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ReferenceSearchEngine>,
-        >>::sse_encode(
-            flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self),
-            serializer,
-        );
-    }
-}
-
-impl SseEncode for RegexBenchmarker {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<RegexBenchmarker>>>::sse_encode(flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self), serializer);
     }
 }
 
@@ -2936,30 +1838,6 @@ impl SseEncode for std::collections::HashMap<String, u32> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <Vec<(String, u32)>>::sse_encode(self.into_iter().collect(), serializer);
-    }
-}
-
-impl SseEncode
-    for RustOpaqueMoi<
-        flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ReferenceSearchEngine>,
-    >
-{
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        let (ptr, size) = self.sse_encode_raw();
-        <usize>::sse_encode(ptr, serializer);
-        <i32>::sse_encode(size, serializer);
-    }
-}
-
-impl SseEncode
-    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<RegexBenchmarker>>
-{
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        let (ptr, size) = self.sse_encode_raw();
-        <usize>::sse_encode(ptr, serializer);
-        <i32>::sse_encode(size, serializer);
     }
 }
 
@@ -2993,38 +1871,6 @@ impl SseEncode for String {
     }
 }
 
-impl SseEncode for crate::api::benchmark::BenchmarkResult {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <String>::sse_encode(self.query_name, serializer);
-        <Vec<String>>::sse_encode(self.regex_terms, serializer);
-        <Vec<String>>::sse_encode(self.facets, serializer);
-        <u32>::sse_encode(self.slop, serializer);
-        <u32>::sse_encode(self.max_expansions, serializer);
-        <u64>::sse_encode(self.execution_time_ms, serializer);
-        <u32>::sse_encode(self.result_count, serializer);
-        <f64>::sse_encode(self.memory_usage_mb, serializer);
-    }
-}
-
-impl SseEncode for crate::api::benchmark::BenchmarkSuite {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <usize>::sse_encode(self.total_queries, serializer);
-        <u64>::sse_encode(self.total_time_ms, serializer);
-        <f64>::sse_encode(self.average_time_ms, serializer);
-        <Option<crate::api::benchmark::BenchmarkResult>>::sse_encode(
-            self.fastest_query,
-            serializer,
-        );
-        <Option<crate::api::benchmark::BenchmarkResult>>::sse_encode(
-            self.slowest_query,
-            serializer,
-        );
-        <Vec<crate::api::benchmark::BenchmarkResult>>::sse_encode(self.results, serializer);
-    }
-}
-
 impl SseEncode for bool {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -3043,13 +1889,6 @@ impl SseEncode for crate::api::search_engine::DocumentInput {
         <u64>::sse_encode(self.segment, serializer);
         <bool>::sse_encode(self.is_pdf, serializer);
         <String>::sse_encode(self.file_path, serializer);
-    }
-}
-
-impl SseEncode for f64 {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        serializer.cursor.write_f64::<NativeEndian>(self).unwrap();
     }
 }
 
@@ -3083,16 +1922,6 @@ impl SseEncode for Vec<String> {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <String>::sse_encode(item, serializer);
-        }
-    }
-}
-
-impl SseEncode for Vec<crate::api::benchmark::BenchmarkResult> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <i32>::sse_encode(self.len() as _, serializer);
-        for item in self {
-            <crate::api::benchmark::BenchmarkResult>::sse_encode(item, serializer);
         }
     }
 }
@@ -3137,56 +1966,12 @@ impl SseEncode for Vec<(String, u32)> {
     }
 }
 
-impl SseEncode for Vec<crate::api::reference_search_engine::ReferenceDocumentInput> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <i32>::sse_encode(self.len() as _, serializer);
-        for item in self {
-            <crate::api::reference_search_engine::ReferenceDocumentInput>::sse_encode(
-                item, serializer,
-            );
-        }
-    }
-}
-
-impl SseEncode for Vec<crate::api::reference_search_engine::ReferenceSearchResult> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <i32>::sse_encode(self.len() as _, serializer);
-        for item in self {
-            <crate::api::reference_search_engine::ReferenceSearchResult>::sse_encode(
-                item, serializer,
-            );
-        }
-    }
-}
-
 impl SseEncode for Vec<crate::api::search_engine::SearchResult> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <crate::api::search_engine::SearchResult>::sse_encode(item, serializer);
-        }
-    }
-}
-
-impl SseEncode for Vec<crate::api::benchmark::TestCase> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <i32>::sse_encode(self.len() as _, serializer);
-        for item in self {
-            <crate::api::benchmark::TestCase>::sse_encode(item, serializer);
-        }
-    }
-}
-
-impl SseEncode for Option<crate::api::benchmark::BenchmarkResult> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <bool>::sse_encode(self.is_some(), serializer);
-        if let Some(value) = self {
-            <crate::api::benchmark::BenchmarkResult>::sse_encode(value, serializer);
         }
     }
 }
@@ -3216,32 +2001,6 @@ impl SseEncode for (String, u32) {
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <String>::sse_encode(self.0, serializer);
         <u32>::sse_encode(self.1, serializer);
-    }
-}
-
-impl SseEncode for crate::api::reference_search_engine::ReferenceDocumentInput {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <u64>::sse_encode(self.id, serializer);
-        <String>::sse_encode(self.title, serializer);
-        <String>::sse_encode(self.reference, serializer);
-        <String>::sse_encode(self.short_ref, serializer);
-        <u64>::sse_encode(self.segment, serializer);
-        <bool>::sse_encode(self.is_pdf, serializer);
-        <String>::sse_encode(self.file_path, serializer);
-    }
-}
-
-impl SseEncode for crate::api::reference_search_engine::ReferenceSearchResult {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <String>::sse_encode(self.title, serializer);
-        <String>::sse_encode(self.reference, serializer);
-        <String>::sse_encode(self.short_ref, serializer);
-        <u64>::sse_encode(self.id, serializer);
-        <u64>::sse_encode(self.segment, serializer);
-        <bool>::sse_encode(self.is_pdf, serializer);
-        <String>::sse_encode(self.file_path, serializer);
     }
 }
 
@@ -3279,17 +2038,8 @@ impl SseEncode for crate::api::search_engine::SearchResult {
         <u64>::sse_encode(self.segment, serializer);
         <bool>::sse_encode(self.is_pdf, serializer);
         <String>::sse_encode(self.file_path, serializer);
-    }
-}
-
-impl SseEncode for crate::api::benchmark::TestCase {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <String>::sse_encode(self.query_name, serializer);
-        <Vec<String>>::sse_encode(self.regex_terms, serializer);
-        <Vec<String>>::sse_encode(self.facets, serializer);
-        <u32>::sse_encode(self.slop, serializer);
-        <u32>::sse_encode(self.max_expansions, serializer);
+        <u32>::sse_encode(self.score, serializer);
+        <u32>::sse_encode(self.word_distance, serializer);
     }
 }
 
@@ -3337,8 +2087,6 @@ mod io {
     // Section: imports
 
     use super::*;
-    use crate::api::benchmark::*;
-    use crate::api::reference_search_engine::*;
     use crate::api::search_engine::*;
     use flutter_rust_bridge::for_generated::byteorder::{
         NativeEndian, ReadBytesExt, WriteBytesExt,
@@ -3351,42 +2099,14 @@ mod io {
     flutter_rust_bridge::frb_generated_boilerplate_io!();
 
     #[unsafe(no_mangle)]
-    pub extern "C" fn frbgen_search_engine_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReferenceSearchEngine(
-        ptr: *const std::ffi::c_void,
-    ) {
-        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ReferenceSearchEngine>>::increment_strong_count(ptr as _);
-    }
-
-    #[unsafe(no_mangle)]
-    pub extern "C" fn frbgen_search_engine_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReferenceSearchEngine(
-        ptr: *const std::ffi::c_void,
-    ) {
-        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ReferenceSearchEngine>>::decrement_strong_count(ptr as _);
-    }
-
-    #[unsafe(no_mangle)]
-    pub extern "C" fn frbgen_search_engine_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegexBenchmarker(
-        ptr: *const std::ffi::c_void,
-    ) {
-        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<RegexBenchmarker>>::increment_strong_count(ptr as _);
-    }
-
-    #[unsafe(no_mangle)]
-    pub extern "C" fn frbgen_search_engine_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegexBenchmarker(
-        ptr: *const std::ffi::c_void,
-    ) {
-        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<RegexBenchmarker>>::decrement_strong_count(ptr as _);
-    }
-
-    #[unsafe(no_mangle)]
-    pub extern "C" fn frbgen_search_engine_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSearchEngine(
+    pub extern "C" fn frbgen_tantivy_search_engine_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSearchEngine(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SearchEngine>>::increment_strong_count(ptr as _);
     }
 
     #[unsafe(no_mangle)]
-    pub extern "C" fn frbgen_search_engine_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSearchEngine(
+    pub extern "C" fn frbgen_tantivy_search_engine_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSearchEngine(
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SearchEngine>>::decrement_strong_count(ptr as _);
@@ -3404,8 +2124,6 @@ mod web {
     // Section: imports
 
     use super::*;
-    use crate::api::benchmark::*;
-    use crate::api::reference_search_engine::*;
     use crate::api::search_engine::*;
     use flutter_rust_bridge::for_generated::byteorder::{
         NativeEndian, ReadBytesExt, WriteBytesExt,
@@ -3418,34 +2136,6 @@ mod web {
     // Section: boilerplate
 
     flutter_rust_bridge::frb_generated_boilerplate_web!();
-
-    #[wasm_bindgen]
-    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReferenceSearchEngine(
-        ptr: *const std::ffi::c_void,
-    ) {
-        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ReferenceSearchEngine>>::increment_strong_count(ptr as _);
-    }
-
-    #[wasm_bindgen]
-    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReferenceSearchEngine(
-        ptr: *const std::ffi::c_void,
-    ) {
-        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ReferenceSearchEngine>>::decrement_strong_count(ptr as _);
-    }
-
-    #[wasm_bindgen]
-    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegexBenchmarker(
-        ptr: *const std::ffi::c_void,
-    ) {
-        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<RegexBenchmarker>>::increment_strong_count(ptr as _);
-    }
-
-    #[wasm_bindgen]
-    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegexBenchmarker(
-        ptr: *const std::ffi::c_void,
-    ) {
-        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<RegexBenchmarker>>::decrement_strong_count(ptr as _);
-    }
 
     #[wasm_bindgen]
     pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSearchEngine(
