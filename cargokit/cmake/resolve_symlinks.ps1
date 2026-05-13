@@ -7,16 +7,23 @@ function Resolve-Symlinks {
     )
 
     [string] $separator = '/'
-    [string[]] $parts = $Path.Split($separator)
+    [string] $normalizedPath = $Path.Replace('\', '/')
+    [string[]] $parts = $normalizedPath.Split($separator, [System.StringSplitOptions]::RemoveEmptyEntries)
 
     [string] $realPath = ''
     foreach ($part in $parts) {
-        if ($realPath -and !$realPath.EndsWith($separator)) {
-            $realPath += $separator
+        if ($realPath) {
+            if (!$realPath.EndsWith($separator)) {
+                $realPath += $separator
+            }
+            $realPath += $part
+        } else {
+            $realPath = $part
         }
-        $realPath += $part
-        $item = Get-Item $realPath
-        if ($item.Target) {
+
+        $nativePath = $realPath.Replace('/', '\')
+        $item = Get-Item -LiteralPath $nativePath -ErrorAction SilentlyContinue
+        if ($item -and $item.Target) {
             $realPath = $item.Target.Replace('\', '/')
         }
     }
