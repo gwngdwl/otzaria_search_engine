@@ -973,7 +973,9 @@ impl SearchEngine {
                 )
             })
             .collect();
-        clauses.push((Occur::Must, self.facet_filter_query(facets)?));
+        if !facets.is_empty() {
+            clauses.push((Occur::Must, self.facet_filter_query(facets)?));
+        }
         Ok(Box::new(BooleanQuery::new(clauses)))
     }
 
