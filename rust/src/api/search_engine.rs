@@ -209,10 +209,7 @@ fn check_sidecar_metadata(metadata_path: PathBuf) -> IndexCompatibility {
     )
 }
 
-fn check_legacy_tantivy_metadata(
-    index_path: &Path,
-    metadata_path: PathBuf,
-) -> IndexCompatibility {
+fn check_legacy_tantivy_metadata(index_path: &Path, metadata_path: PathBuf) -> IndexCompatibility {
     let tantivy_metadata_path = index_path.join("meta.json");
     if !tantivy_metadata_path.exists() {
         return compatibility(
@@ -305,7 +302,10 @@ fn id_field_is_current(field: &JsonValue) -> bool {
             .and_then(JsonValue::as_bool)
             == Some(true)
         && field.pointer("/options/fast").and_then(JsonValue::as_bool) == Some(true)
-        && field.pointer("/options/stored").and_then(JsonValue::as_bool) == Some(true)
+        && field
+            .pointer("/options/stored")
+            .and_then(JsonValue::as_bool)
+            == Some(true)
 }
 
 fn ensure_current_index_metadata(index_path: &Path) -> Result<()> {
@@ -1232,7 +1232,10 @@ impl SearchEngine {
             .collect();
         let main_query: Box<dyn Query> = match terms.len() {
             0 => Box::new(EmptyQuery),
-            1 => Box::new(TermQuery::new(terms.pop().unwrap(), IndexRecordOption::Basic)),
+            1 => Box::new(TermQuery::new(
+                terms.pop().unwrap(),
+                IndexRecordOption::Basic,
+            )),
             _ => Box::new(PhraseQuery::new(terms)),
         };
         if facets.is_empty() {
@@ -1411,8 +1414,7 @@ impl SearchEngine {
         let addresses = Self::collect_addresses(&searcher, &*query, limit, offset, order)?;
         let hl_q: &dyn Query = highlight_query.as_deref().unwrap_or(query.as_ref());
         for chunk in addresses.chunks(chunk_size) {
-            let results =
-                Self::build_results(&self.schema, &searcher, hl_q, chunk.to_vec(), hl)?;
+            let results = Self::build_results(&self.schema, &searcher, hl_q, chunk.to_vec(), hl)?;
             // If the Dart side cancelled the stream, stop early.
             if sink.add(results).is_err() {
                 break;
@@ -2346,7 +2348,11 @@ mod tests {
                 ResultsOrder::Catalogue,
             )
             .unwrap());
-        assert_eq!(got, vec![1, 2], "grammatical prefix should match ספר and הספר");
+        assert_eq!(
+            got,
+            vec![1, 2],
+            "grammatical prefix should match ספר and הספר"
+        );
     }
 
     #[test]
