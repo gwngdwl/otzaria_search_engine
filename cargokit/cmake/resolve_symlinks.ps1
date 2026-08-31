@@ -10,6 +10,8 @@ function Resolve-Symlinks {
     [string] $normalizedPath = $Path.Replace('\', '/')
     [string] $realPath = ''
     [string] $remainingPath = $normalizedPath
+    [bool] $isDriveRelative = $false
+    $resolvedLinks = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 
     if ($remainingPath.StartsWith('//')) {
         [string[]] $uncParts = $remainingPath.Substring(2).Split($separator, [System.StringSplitOptions]::None)
@@ -27,6 +29,10 @@ function Resolve-Symlinks {
         if ($remainingPath.StartsWith($separator)) {
             $realPath += $separator
             $remainingPath = $remainingPath.TrimStart($separator)
+        } elseif ($remainingPath) {
+            # C:foo is relative to the current directory on drive C, whereas
+            # C:/foo is rooted at the drive. Preserve that distinction.
+            $isDriveRelative = $true
         }
     } elseif ($remainingPath.StartsWith($separator)) {
         $realPath = $separator
@@ -40,19 +46,26 @@ function Resolve-Symlinks {
     }
 
     foreach ($part in $parts) {
-        if ($realPath -and !$realPath.EndsWith($separator)) {
+        if ($realPath -and !$realPath.EndsWith($separator) -and !($isDriveRelative -and $realPath -match '^[A-Za-z]:$')) {
             $realPath += $separator
         }
         $realPath += $part
+        $isDriveRelative = $false
 
         $nativePath = $realPath.Replace('/', '\')
         $item = Get-Item -LiteralPath $nativePath -ErrorAction SilentlyContinue
-        if ($item -and $item.Target) {
+        while ($item -and $item.Target) {
+            if (!$resolvedLinks.Add($nativePath)) {
+                throw "Detected a symbolic-link cycle while resolving '$Path'."
+            }
+
             $targetPath = @($item.Target)[0]
             if (-not [System.IO.Path]::IsPathRooted($targetPath)) {
                 $targetPath = Join-Path (Split-Path -Parent $nativePath) $targetPath
             }
-            $realPath = [System.IO.Path]::GetFullPath($targetPath).Replace('\', '/')
+            $nativePath = [System.IO.Path]::GetFullPath($targetPath)
+            $realPath = $nativePath.Replace('\', '/')
+            $item = Get-Item -LiteralPath $nativePath -ErrorAction SilentlyContinue
         }
     }
 
