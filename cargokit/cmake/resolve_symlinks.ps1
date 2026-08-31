@@ -7,19 +7,72 @@ function Resolve-Symlinks {
     )
 
     [string] $separator = '/'
-    [string[]] $parts = $Path.Split($separator)
-
+    [string] $normalizedPath = $Path.Replace('\', '/')
     [string] $realPath = ''
+    [string] $remainingPath = $normalizedPath
+    [bool] $isDriveRelative = $false
+    $resolvedLinks = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+
+    if ($remainingPath.StartsWith('//')) {
+        [string[]] $uncParts = $remainingPath.Substring(2).Split($separator, [System.StringSplitOptions]::None)
+        if ($uncParts.Length -ge 2) {
+            $realPath = "//$($uncParts[0])/$($uncParts[1])"
+            $remainingPath = if ($uncParts.Length -gt 2) {
+                $uncParts[2..($uncParts.Length - 1)] -join $separator
+            } else {
+                ''
+            }
+        }
+    } elseif ($remainingPath -match '^[A-Za-z]:') {
+        $realPath = $remainingPath.Substring(0, 2)
+        $remainingPath = $remainingPath.Substring(2)
+        if ($remainingPath.StartsWith($separator)) {
+            $realPath += $separator
+            $remainingPath = $remainingPath.TrimStart($separator)
+        } elseif ($remainingPath) {
+            # C:foo is relative to the current directory on drive C, whereas
+            # C:/foo is rooted at the drive. Preserve that distinction.
+            $isDriveRelative = $true
+        }
+    } elseif ($remainingPath.StartsWith($separator)) {
+        $realPath = $separator
+        $remainingPath = $remainingPath.TrimStart($separator)
+    }
+
+    [string[]] $parts = if ($remainingPath) {
+        $remainingPath.Split($separator, [System.StringSplitOptions]::RemoveEmptyEntries)
+    } else {
+        @()
+    }
+
     foreach ($part in $parts) {
-        if ($realPath -and !$realPath.EndsWith($separator)) {
+        if ($realPath -and !$realPath.EndsWith($separator) -and !($isDriveRelative -and $realPath -match '^[A-Za-z]:$')) {
             $realPath += $separator
         }
         $realPath += $part
-        $item = Get-Item $realPath
-        if ($item.Target) {
-            $realPath = $item.Target.Replace('\', '/')
+        $isDriveRelative = $false
+
+        $nativePath = $realPath.Replace('/', '\')
+        $item = Get-Item -LiteralPath $nativePath -ErrorAction SilentlyContinue
+        while ($item -and $item.Target) {
+            if (!$resolvedLinks.Add($nativePath)) {
+                throw "Detected a symbolic-link cycle while resolving '$Path'."
+            }
+
+            $targetPath = @($item.Target)[0]
+            if (-not [System.IO.Path]::IsPathRooted($targetPath)) {
+                $targetPath = Join-Path (Split-Path -Parent $nativePath) $targetPath
+            }
+            $nativePath = [System.IO.Path]::GetFullPath($targetPath)
+            $realPath = $nativePath.Replace('\', '/')
+            $item = Get-Item -LiteralPath $nativePath -ErrorAction SilentlyContinue
         }
     }
+
+    if (!$realPath) {
+        $realPath = $normalizedPath
+    }
+
     $realPath
 }
 
