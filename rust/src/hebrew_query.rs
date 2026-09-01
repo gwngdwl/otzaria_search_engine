@@ -39,6 +39,7 @@ const INSERTION_LETTERS: &[&str] = &[
 ];
 
 const MAX_TYPO_TOLERANCE_VARIATIONS: usize = 48;
+const MAX_OPTIONAL_SPELLING_CHARS: usize = 10;
 
 // ── Result of preparing an advanced query ───────────────────────────────────────
 
@@ -185,7 +186,7 @@ pub fn generate_full_partial_spelling_variations(word: &str) -> Vec<String> {
     let n = optional_indices.len();
     // Safety guard against pathological input (only-yod/vav words of huge length).
     // Real tokens never approach this; keeps the 1<<n shift well-defined.
-    if n > 20 {
+    if n > MAX_OPTIONAL_SPELLING_CHARS {
         return vec![word.to_string()];
     }
     let num = 1usize << n;
@@ -202,7 +203,9 @@ pub fn generate_full_partial_spelling_variations(word: &str) -> Vec<String> {
             orig = next_optional + 1;
         }
         variant.extend(&chars[orig..]);
-        push_unique(&mut out, &mut seen, variant);
+        if !variant.is_empty() {
+            push_unique(&mut out, &mut seen, variant);
+        }
     }
     out
 }
@@ -741,6 +744,19 @@ mod tests {
         assert_eq!(
             generate_full_partial_spelling_variations("גמל"),
             vec!["גמל"]
+        );
+    }
+
+    #[test]
+    fn spelling_variations_are_non_empty_and_bounded() {
+        assert!(generate_full_partial_spelling_variations("ויו")
+            .iter()
+            .all(|variation| !variation.is_empty()));
+
+        let long_word = "וי".repeat(MAX_OPTIONAL_SPELLING_CHARS + 1);
+        assert_eq!(
+            generate_full_partial_spelling_variations(&long_word),
+            vec![long_word]
         );
     }
 

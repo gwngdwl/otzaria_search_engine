@@ -1,3 +1,4 @@
+use crate::api::hebrew_tokenizer::HebrewTokenizer;
 use crate::frb_generated::StreamSink;
 use anyhow::{Context, Result};
 use flutter_rust_bridge::frb;
@@ -22,7 +23,6 @@ use tantivy::tokenizer::{LowerCaser, TextAnalyzer, TokenStream};
 use tantivy::{doc, DocAddress, IndexReader, IndexWriter, Order, ReloadPolicy, Score, Searcher};
 use tantivy::{schema::*, Index};
 use tantivy::{DocId, SegmentOrdinal, SegmentReader};
-use crate::api::hebrew_tokenizer::HebrewTokenizer;
 
 use crate::hebrew_query;
 
@@ -1199,6 +1199,10 @@ impl SearchEngine {
             phrase_query.set_max_expansions(max_expansions);
             Box::new(phrase_query)
         };
+
+        if facets.is_empty() {
+            return Ok(main_query);
+        }
 
         let facet_terms: Vec<Term> = facets
             .iter()
@@ -2471,6 +2475,28 @@ mod tests {
             vec![1, 2],
             "grammatical prefix should match ספר and הספר"
         );
+    }
+
+    #[test]
+    fn test_search_advanced_without_facets() {
+        let (mut engine, _dir) = make_engine();
+        add(&mut engine, 1, "ספר", "/books/a.txt");
+        engine.commit().unwrap();
+
+        let got = ids(engine
+            .search_advanced(
+                "ספר".to_string(),
+                vec![],
+                100,
+                0,
+                0,
+                HashMap::new(),
+                HashMap::new(),
+                HashMap::new(),
+                ResultsOrder::Catalogue,
+            )
+            .unwrap());
+        assert_eq!(got, vec![1]);
     }
 
     #[test]
